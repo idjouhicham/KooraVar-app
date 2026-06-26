@@ -1,0 +1,28 @@
+{
+  "name": "كووورة - الدوري المحلي",
+  "short_name": "كووورة",
+  "description": "تطبيق متابعة الكورة - نتائج، دوري، لاعبون، بث مباشر",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#080c18",
+  "theme_color": "#080c18",
+  "orientation": "portrait",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["sports", "entertainment"],
+  "screenshots": []
+}
