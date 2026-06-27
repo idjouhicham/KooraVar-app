@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a0618">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="كووورة">
+<title>كووورة ⚽</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root{
+  /* Colors */
+  --bg0:#060412;--bg1:#0d0a1f;--bg2:#141030;--bg3:#1c1640;
+  --purple:#6366f1;--purple2:#8b5cf6;--purple-dim:rgba(99,102,241,.15);
+  --green:#10b981;--green2:#34d399;--green-dim:rgba(16,185,129,.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.12);
+  --yellow:#f59e0b;--blue:#3b82f6;--pink:#ec4899;
+  --t1:#f0f0ff;--t2:#9090b8;--t3:#3d3a60;
+  --border:rgba(99,102,241,.15);--border2:rgba(99,102,241,.25);
+  --glass:rgba(13,10,31,.85);
+  /* Sizes */
+  --hdr:56px;--nav:64px;--r:18px;--r-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html{scroll-behavior:smooth}
+body{background:var(--bg0);color:var(--t1);font-family:'Cairo',sans-serif;min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{display:none}
+
+/* ── ANIMATED BG ─────────────────────────── */
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 10%,rgba(99,102,241,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(139,92,246,.06) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+/* ── HEADER ─────────────────────────────── */
+.hdr{position:sticky;top:0;z-index:90;height:var(--hdr);display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.logo-wrap{display:flex;align-items:center;gap:8px}
+.logo-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text{font-size:20px;font-weight:900;background:linear-gradient(135deg,#fff 30%,var(--purple2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.live-badge{display:none;align-items:center;gap:5px;background:var(--red-dim);border:1px solid rgba(239,68,68,.3);color:var(--red);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;letter-spacing:.3px}
+.live-dot{width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+.hdr-btn{width:34px;height:34px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:.2s}
+.hdr-btn:active{transform:scale(.9)}
+
+/* ── TABS (league selector) ─────────────── */
+.tabs-wrap{background:var(--bg1);border-bottom:1px solid var(--border);position:sticky;top:var(--hdr);z-index:80}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;padding:0 4px}
+.tab{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:10px 12px;font-size:11px;font-weight:700;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.2s;letter-spacing:.2px}
+.tab img{width:18px;height:18px;object-fit:contain;border-radius:3px}
+.tab.on{color:var(--purple);border-bottom-color:var(--purple)}
+.tab.on img{filter:none}
+
+/* ── DATE STRIP ─────────────────────────── */
+.date-strip{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none;background:var(--bg1)}
+.date-chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 12px;border-radius:12px;cursor:pointer;border:1px solid transparent;transition:.2s;min-width:48px}
+.date-chip.on{background:var(--purple);border-color:var(--purple)}
+.date-chip.on .dc-day,.date-chip.on .dc-num{color:#fff}
+.dc-day{font-size:9px;font-weight:600;color:var(--t3)}
+.dc-num{font-size:15px;font-weight:900;color:var(--t2)}
+
+/* ── PAGES ──────────────────────────────── */
+.page{display:none;padding:12px 12px 80px;position:relative;z-index:1}
+.page.on{display:block;animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── FILTER PILLS ───────────────────────── */
+.pills{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+.pill{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid var(--border2);color:var(--t2);cursor:pointer;transition:.18s;white-space:nowrap}
+.pill.on{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* ── SKELETON ───────────────────────────── */
+.sk{background:linear-gradient(90deg,var(--bg1) 25%,var(--bg2) 50%,var(--bg1) 75%);background-size:200%;animation:sk 1.4s infinite;border-radius:8px}
+@keyframes sk{0%{background-position:200%}100%{background-position:-200%}}
+.sk-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px}
+
+/* ── SECTION LABEL ──────────────────────── */
+.section-lbl{display:flex;align-items:center;gap:8px;margin:16px 0 10px;font-size:12px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.8px}
+.section-lbl::before{content:'';width:3px;height:14px;background:var(--purple);border-radius:2px}
+.section-lbl::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── MATCH CARD ─────────────────────────── */
+.mcard{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px 14px 12px;margin-bottom:8px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}
+.mcard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--purple-dim),transparent);opacity:0;transition:.2s}
+.mcard:active::before{opacity:1}
+.mcard:active{transform:scale(.982);border-color:var(--border2)}
+.mcard-live{border-color:rgba(239,68,68,.3);background:linear-gradient(135deg,rgba(239,68,68,.04),var(--bg1))}
+.mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mc-league{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:600;color:var(--t3)}
+.mc-league img{width:14px;height:14px;object-fit:contain;border-radius:2px}
+.mc-status-live{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:var(--red);background:var(--red-dim);border:1px solid rgba(239,68,68,.2);padding:3px 8px;border-radius:8px}
+.mc-status-up{font-size:10px;font-weight:700;color:var(--blue);background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);padding:3px 8px;border-radius:8px}
+.mc-status-end{font-size:10px;font-weight:600;color:var(--t3);background:var(--bg2);padding:3px 8px;border-radius:8px}
+.mc-status-pp{font-size:10px;font-weight:600;color:var(--yellow);background:rgba(245,158,11,.1);padding:3px 8px;border-radius:8px}
+.mc-teams{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin-bottom:10px}
+.mc-team{display:flex;flex-direction:column;align-items:center;gap:6px}
+.mc-badge{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))}
+.mc-badge-ph{width:46px;height:46px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:20px}
+.mc-tname{font-size:11px;font-weight:700;text-align:center;line-height:1.3;max-width:80px}
+.mc-score-wrap{text-align:center}
+.mc-score{font-size:28px;font-weight:900;letter-spacing:2px;line-height:1;font-variant-numeric:tabular-nums}
+.mc-score-sep{color:var(--t3);font-weight:400}
+.mc-vs{font-size:13px;font-weight:700;color:var(--t3)}
+.mc-time{font-size:11px;color:var(--t2);margin-top:2px}
+.mc-live-min{font-size:11px;font-weight:800;color:var(--red);animation:pulse 1.4s infinite;margin-top:2px}
+.mc-foot{border-top:1px solid var(--border);padding-top:8px;display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--t3)}
+.mc-watch{color:var(--green);font-weight:700;display:flex;align-items:center;gap:3px}
+
+/* ── CATEGORY GRID ──────────────────────── */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.cat-item{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px 8px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:.18s}
+.cat-item:active{border-color:var(--purple);transform:scale(.95)}
+.cat-img{width:52px;height:52px;object-fit:contain}
+.cat-img-ph{width:52px;height:52px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:26px}
+.cat-name{font-size:11px;font-weight:700;text-align:center;line-height:1.3}
+.cat-sub{font-size:9px;color:var(--t3);font-weight:600}
+
+/* ── STANDINGS ──────────────────────────── */
+.st-hdr{display:grid;grid-template-columns:24px 1fr 28px 28px 28px 28px 32px;gap:2px;padding:6px 10px;font-size:9px;color:var(--t3);font-weight:700;text-align:center;text-transform:uppercase;letter-spacing:.4px}
+.st-hdr>:nth-child(2){text-align:right}
+.st-row{display:grid;grid-template-columns:24px 1fr 28px 28px 28px 28px 32px;gap:2px;align-items:center;padding:9px 10px;background:var(--bg1);border:1px solid var(--border);border-radius:10px;margin-bottom:5px;font-size:11px;text-align:center;transition:.15s}
+.st-row:active{border-color:var(--border2)}
+.st-row.cl{border-right:3px solid var(--blue)}
+.st-row.cl2{border-right:3px solid var(--green)}
+.st-row.rl{border-right:3px solid var(--red)}
+.st-rank{font-weight:900;font-size:12px;color:var(--t3)}
+.st-team-cell{display:flex;align-items:center;gap:6px;text-align:right}
+.st-logo{width:20px;height:20px;object-fit:contain;flex-shrink:0}
+.st-tname{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.st-pts{font-weight:900;color:var(--purple)}
+.form-bar{display:flex;gap:2px}
+.form-d{width:7px;height:7px;border-radius:50%}
+.fw{background:var(--green)}.fd{background:var(--t3)}.fl{background:var(--red)}
+
+/* ── PLAYER CARDS ───────────────────────── */
+.p2-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pcard{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;transition:.18s}
+.pcard:active{border-color:var(--purple)}
+.p-avatar{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid var(--border2);margin:0 auto 8px}
+.p-avatar-ph{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--bg2),var(--bg3));border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 8px}
+.p-name{font-size:12px;font-weight:700;margin-bottom:2px;line-height:1.3}
+.p-team{font-size:10px;color:var(--t2);margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:3px}
+.p-team img{width:12px;height:12px;object-fit:contain}
+.p-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;display:inline-block;margin-bottom:8px}
+.p-badge-g{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+.p-badge-m{background:var(--purple-dim);color:var(--purple);border:1px solid var(--border2)}
+.p-badge-d{background:rgba(59,130,246,.1);color:var(--blue);border:1px solid rgba(59,130,246,.2)}
+.p-badge-k{background:rgba(245,158,11,.1);color:var(--yellow);border:1px solid rgba(245,158,11,.2)}
+.p-stats{display:flex;justify-content:center;gap:12px}
+.ps-val{font-size:16px;font-weight:900}
+.ps-lbl{font-size:9px;color:var(--t3);font-weight:600}
+.scorer-row{display:flex;align-items:center;gap:10px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:6px;transition:.15s}
+.scorer-row:active{border-color:var(--border2)}
+.s-rank{font-size:18px;min-width:28px;text-align:center}
+.s-photo{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0}
+.s-photo-ph{width:38px;height:38px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.s-info{flex:1;min-width:0}
+.s-name{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-team{font-size:10px;color:var(--t2);display:flex;align-items:center;gap:3px;margin-top:2px}
+.s-team img{width:12px;height:12px;object-fit:contain}
+.s-stat{text-align:center;min-width:36px}
+.s-stat-v{font-size:20px;font-weight:900;color:var(--green)}
+.s-stat-l{font-size:9px;color:var(--t3);font-weight:600}
+
+/* ── NEWS ───────────────────────────────── */
+.news-featured{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:10px;cursor:pointer;transition:.18s}
+.news-featured:active{border-color:var(--border2)}
+.nf-img{width:100%;height:180px;object-fit:cover;background:var(--bg2)}
+.nf-body{padding:12px}
+.nf-cat{font-size:10px;font-weight:700;color:var(--purple);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.nf-title{font-size:14px;font-weight:700;line-height:1.4;margin-bottom:6px}
+.nf-meta{font-size:10px;color:var(--t3);display:flex;gap:8px}
+.news-item{display:flex;gap:10px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px;cursor:pointer;transition:.15s}
+.news-item:active{border-color:var(--border2)}
+.ni-img{width:72px;height:64px;object-fit:cover;border-radius:8px;flex-shrink:0;background:var(--bg2)}
+.ni-body{flex:1;min-width:0}
+.ni-cat{font-size:9px;font-weight:700;color:var(--purple);margin-bottom:3px}
+.ni-title{font-size:11px;font-weight:700;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ni-time{font-size:9px;color:var(--t3);margin-top:4px}
+
+/* ── DETAIL MODAL ───────────────────────── */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);display:none}
+.modal-overlay.on{display:flex;align-items:flex-end}
+.modal-sheet{width:100%;background:var(--bg1);border-radius:24px 24px 0 0;max-height:93dvh;overflow-y:auto;animation:sheetUp .28s cubic-bezier(.25,.46,.45,.94)}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--t3);border-radius:2px;margin:12px auto 0}
+.modal-body{padding:14px 14px 40px}
+.detail-hero{background:linear-gradient(135deg,var(--bg2),var(--bg3));border-radius:16px;padding:20px 14px;margin-bottom:14px;position:relative;overflow:hidden}
+.detail-hero::before{content:'⚽';position:absolute;right:-10px;bottom:-10px;font-size:80px;opacity:.06}
+.detail-teams{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.detail-score{font-size:38px;font-weight:900;text-align:center;letter-spacing:3px;line-height:1}
+.detail-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
+.dtab{flex-shrink:0;padding:7px 14px;border-radius:10px;font-size:11px;font-weight:700;border:1px solid var(--border);color:var(--t2);cursor:pointer;transition:.15s;white-space:nowrap}
+.dtab.on{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+.dp{display:none}.dp.on{display:block}
+.embed-wrap{position:relative;width:100%;padding-bottom:56.25%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:10px}
+.embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+.embed-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--t2);font-size:12px}
+.embed-ph-icon{font-size:40px}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg2);border-radius:10px;margin-bottom:6px;font-size:12px}
+.info-row-lbl{color:var(--t3);font-weight:600;font-size:11px}
+.info-row-val{font-weight:700}
+.event-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.event-min{font-size:11px;font-weight:800;color:var(--green);min-width:30px}
+.event-icon{font-size:16px;min-width:20px;text-align:center}
+.event-name{flex:1}
+.lineup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lineup-team{background:var(--bg2);border-radius:12px;padding:10px}
+.lineup-title{font-size:11px;font-weight:700;text-align:center;margin-bottom:8px;color:var(--purple)}
+.lineup-player{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);font-size:10px}
+.lineup-num{width:18px;height:18px;border-radius:50%;background:var(--purple-dim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+
+/* ── STREAM EMBED INPUT ─────────────────── */
+.stream-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.stream-thumb{height:140px;background:linear-gradient(135deg,var(--bg2),var(--bg3));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;position:relative}
+.play-btn{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 20px rgba(99,102,241,.4);transition:.15s}
+.play-btn:active{transform:scale(.88)}
+.stream-title-ov{position:absolute;bottom:0;inset-x:0;padding:8px 12px;background:linear-gradient(transparent,rgba(0,0,0,.85));font-size:12px;font-weight:700}
+.stream-info{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.stream-meta{font-size:10px;color:var(--t2)}
+.watch-btn{background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;font-size:11px;font-weight:700;padding:7px 14px;border-radius:10px;border:none;cursor:pointer;font-family:'Cairo',sans-serif}
+
+/* ── SETTINGS PAGE ──────────────────────── */
+.settings-section{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.settings-title{padding:12px 14px;font-size:11px;font-weight:700;color:var(--purple);background:var(--purple-dim);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;letter-spacing:.3px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:.15s}
+.setting-row:last-child{border-bottom:none}
+.setting-row:active{background:var(--bg2)}
+.sr-left{display:flex;align-items:center;gap:10px}
+.sr-icon{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sr-title{font-size:13px;font-weight:600}
+.sr-sub{font-size:10px;color:var(--t3);margin-top:1px}
+.toggle{width:44px;height:24px;background:var(--t3);border-radius:12px;position:relative;cursor:pointer;transition:.25s;flex-shrink:0}
+.toggle.on{background:var(--purple)}
+.toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on::after{left:23px}
+.chevron{color:var(--t3);font-size:16px}
+.lang-badge{font-size:11px;font-weight:700;color:var(--purple);background:var(--purple-dim);padding:3px 10px;border-radius:8px}
+
+/* ── ADMIN ──────────────────────────────── */
+.admin-lock{position:fixed;inset:0;z-index:300;background:var(--bg0);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.lock-logo{font-size:56px}
+.lock-title{font-size:16px;font-weight:700;color:var(--t2)}
+.lock-sub{font-size:12px;color:var(--t3)}
+.lock-input{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:13px 18px;color:var(--t1);font-size:16px;font-family:'Cairo',sans-serif;outline:none;text-align:center;width:230px;transition:.2s}
+.lock-input:focus{border-color:var(--purple)}
+.lock-btn{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-weight:700;border:none;border-radius:14px;padding:13px 36px;font-size:14px;font-family:'Cairo',sans-serif;cursor:pointer;width:230px}
+.admin-section{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
+.admin-title{padding:11px 14px;font-size:11px;font-weight:700;color:var(--purple);background:var(--purple-dim);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.admin-body{padding:14px}
+.f-grp{margin-bottom:10px}
+.f-lbl{font-size:11px;color:var(--t2);font-weight:600;margin-bottom:5px;display:block}
+.f-in,.f-sel,.f-ta{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--t1);padding:9px 12px;font-size:13px;font-family:'Cairo',sans-serif;outline:none;transition:.2s;resize:none}
+.f-in:focus,.f-sel:focus,.f-ta:focus{border-color:var(--purple)}
+.f-ta{min-height:90px;line-height:1.5}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-p{width:100%;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;font-family:'Cairo',sans-serif;cursor:pointer;margin-top:2px;transition:.18s}
+.btn-p:active{opacity:.85}
+.btn-red{background:linear-gradient(135deg,var(--red),#dc2626)}
+.btn-out{background:transparent;border:1px solid var(--border2);color:var(--t2);margin-top:8px}
+
+/* ── TOAST ──────────────────────────────── */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg2);border:1px solid var(--border2);color:var(--t1);padding:10px 20px;border-radius:20px;font-size:12px;font-weight:700;opacity:0;transition:.3s;z-index:999;pointer-events:none;white-space:nowrap;backdrop-filter:blur(10px)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── BOTTOM NAV ─────────────────────────── */
+.bnav{position:fixed;bottom:0;inset-x:0;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;z-index:90;padding-bottom:env(safe-area-inset-bottom)}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 0;cursor:pointer;border:none;background:none;font-family:'Cairo',sans-serif;color:var(--t3);font-size:9px;font-weight:700;transition:.2s}
+.ni.on{color:var(--purple)}
+.ni-icon{font-size:22px;line-height:1;transition:.2s}
+.ni.on .ni-icon{transform:translateY(-1px)}
+
+/* ── LOADING ─────────────────────────────── */
+.spin{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-wrap{text-align:center;padding:48px 16px;color:var(--t2);font-size:13px}
+.empty-wrap{text-align:center;padding:56px 16px;color:var(--t2)}
+.empty-icon{font-size:48px;margin-bottom:10px;filter:grayscale(1);opacity:.4}
+.empty-txt{font-size:13px;line-height:1.5}
+
+/* ── SUBTABS ─────────────────────────────── */
+.stabs{display:flex;gap:6px;margin-bottom:14px}
+.stab{flex:1;text-align:center;padding:8px;font-size:11px;font-weight:700;border-radius:10px;background:var(--bg1);border:1px solid var(--border);color:var(--t2);cursor:pointer;transition:.15s}
+.stab.on{background:var(--purple-dim);border-color:var(--purple);color:var(--purple)}
+
+/* ── NOTIFICATIONS ───────────────────────── */
+.notif-item{display:flex;gap:10px;background:var(--bg1);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;align-items:flex-start}
+.notif-icon{width:36px;height:36px;border-radius:10px;background:var(--purple-dim);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.notif-body{flex:1}
+.notif-title{font-size:12px;font-weight:700;margin-bottom:2px}
+.notif-time{font-size:10px;color:var(--t3)}
+
+/* ── UTILITY ─────────────────────────────── */
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:0 5px}
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
+<header class="hdr">
+  <div class="logo-wrap">
+    <div class="logo-icon">⚽</div>
+    <div class="logo-text">كووورة</div>
+  </div>
+  <div class="hdr-right">
+    <div class="live-badge" id="live-badge"><div class="live-dot"></div><span id="live-n">0</span> مباشر</div>
+    <div class="hdr-btn" onclick="openSearch()" title="بحث">🔍</div>
+    <div class="hdr-btn" onclick="showPage('notif',null)" title="الإشعارات">🔔</div>
+  </div>
+</header>
+
+<!-- ══ LEAGUE TABS ═══════════════════════════════════════════ -->
+<div class="tabs-wrap">
+  <div class="tabs" id="league-tabs">
+    <div class="tab on" data-lid="all" onclick="setLeague('all',this)">⭐ الكل</div>
+    <div class="tab" data-lid="4480" onclick="setLeague('4480',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/qptr2p1622729381.png" onerror="this.style.display='none'"> روشن</div>
+    <div class="tab" data-lid="4328" onclick="setLeague('4328',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/r0cxut1549879310.png" onerror="this.style.display='none'"> بريميرليج</div>
+    <div class="tab" data-lid="4335" onclick="setLeague('4335',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/7onmyv1534768460.png" onerror="this.style.display='none'"> لاليغا</div>
+    <div class="tab" data-lid="4346" onclick="setLeague('4346',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/ql7sy01635507687.png" onerror="this.style.display='none'"> أبطال أوروبا</div>
+    <div class="tab" data-lid="4337" onclick="setLeague('4337',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/0j55yv1534764727.png" onerror="this.style.display='none'"> بوندسليغا</div>
+    <div class="tab" data-lid="4332" onclick="setLeague('4332',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/0s7hrb1534773164.png" onerror="this.style.display='none'"> سيري آ</div>
+    <div class="tab" data-lid="4331" onclick="setLeague('4331',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/qe7gn01617960421.png" onerror="this.style.display='none'"> ليغ 1</div>
+    <div class="tab" data-lid="4350" onclick="setLeague('4350',this)"><img src="https://www.thesportsdb.com/images/media/league/badge/7g1zve1553885235.png" onerror="this.style.display='none'"> يوروبا ليغ</div>
+    <div class="tab" data-lid="4387" onclick="setLeague('4387',this)">🇺🇸 MLS</div>
+    <div class="tab" data-lid="4351" onclick="setLeague('4351',this)">🌍 أفريقيا</div>
+    <div class="tab" data-lid="4399" onclick="setLeague('4399',this)">🇦🇷 أرجنتين</div>
+    <div class="tab" data-lid="4336" onclick="setLeague('4336',this)">🇧🇷 البرازيل</div>
+    <div class="tab" data-lid="4438" onclick="setLeague('4438',this)">🏆 كأس العالم</div>
+  </div>
+</div>
+
+<!-- ══ PAGES ════════════════════════════════════════════════ -->
+<main id="app">
+
+  <!-- ─ MATCHES ─────────────────────────────────────────── -->
+  <div class="page on" id="page-matches">
+    <!-- Date strip -->
+    <div class="date-strip" id="date-strip"></div>
+    <!-- Status pills -->
+    <div class="pills" style="padding:0 0 10px">
+      <div class="pill on" onclick="setStatus('all',this)">🌐 الكل</div>
+      <div class="pill" onclick="setStatus('live',this)">🔴 مباشر</div>
+      <div class="pill" onclick="setStatus('upcoming',this)">📅 قادمة</div>
+      <div class="pill" onclick="setStatus('finished',this)">✅ انتهت</div>
+    </div>
+    <div id="matches-list"></div>
+  </div>
+
+  <!-- ─ CATEGORY ────────────────────────────────────────── -->
+  <div class="page" id="page-cat">
+    <div class="section-lbl">جميع الدوريات والبطولات</div>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
+
+  <!-- ─ STANDINGS ──────────────────────────────────────── -->
+  <div class="page" id="page-standings">
+    <div class="section-lbl">ترتيب الدوري</div>
+    <div class="st-hdr">
+      <div>#</div><div style="text-align:right">الفريق</div>
+      <div>ل</div><div>ف</div><div>ت</div><div>خ</div><div>نق</div>
+    </div>
+    <div id="standings-list"></div>
+  </div>
+
+  <!-- ─ PLAYERS ────────────────────────────────────────── -->
+  <div class="page" id="page-players">
+    <div class="stabs">
+      <div class="stab on" onclick="setPlayerTab('squad',this)">👥 اللاعبون</div>
+      <div class="stab" onclick="setPlayerTab('scorers',this)">⚽ الهدافون</div>
+      <div class="stab" onclick="setPlayerTab('assists',this)">🎯 المُمرِّرون</div>
+    </div>
+    <div id="players-list"></div>
+  </div>
+
+  <!-- ─ NEWS ───────────────────────────────────────────── -->
+  <div class="page" id="page-news">
+    <div class="section-lbl">آخر أخبار كرة القدم</div>
+    <div class="pills" style="padding:0 0 12px">
+      <div class="pill on" onclick="setNewsCat('all',this)">🌐 الكل</div>
+      <div class="pill" onclick="setNewsCat('fifa',this)">🏆 FIFA</div>
+      <div class="pill" onclick="setNewsCat('transfers',this)">🔄 انتقالات</div>
+      <div class="pill" onclick="setNewsCat('champions',this)">⭐ أبطال</div>
+      <div class="pill" onclick="setNewsCat('arab',this)">🌙 عربي</div>
+    </div>
+    <div id="news-list"></div>
+  </div>
+
+  <!-- ─ STREAM ─────────────────────────────────────────── -->
+  <div class="page" id="page-stream">
+    <div class="section-lbl">البث المباشر</div>
+    <div id="streams-list"></div>
+  </div>
+
+  <!-- ─ NOTIFICATIONS ──────────────────────────────────── -->
+  <div class="page" id="page-notif">
+    <div class="section-lbl">الإشعارات</div>
+    <div id="notif-list">
+      <div class="notif-item"><div class="notif-icon">⚽</div><div class="notif-body"><div class="notif-title">مرحباً بك في كووورة!</div><div class="notif-time">الآن</div></div></div>
+    </div>
+  </div>
+
+  <!-- ─ SETTINGS ───────────────────────────────────────── -->
+  <div class="page" id="page-settings">
+    <div class="section-lbl">الإعدادات</div>
+
+    <!-- Notifications -->
+    <div class="settings-section">
+      <div class="settings-title">🔔 الإشعارات</div>
+      <div class="setting-row" onclick="toggleSetting('notif_goals')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(16,185,129,.15)">⚽</div><div><div class="sr-title">إشعارات الأهداف</div><div class="sr-sub">تلقّ إشعاراً فور تسجيل هدف</div></div></div>
+        <div class="toggle on" id="tog-notif_goals"></div>
+      </div>
+      <div class="setting-row" onclick="toggleSetting('notif_start')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(59,130,246,.15)">📅</div><div><div class="sr-title">تذكير بدء المباراة</div><div class="sr-sub">قبل 15 دقيقة من البداية</div></div></div>
+        <div class="toggle on" id="tog-notif_start"></div>
+      </div>
+      <div class="setting-row" onclick="toggleSetting('notif_results')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(245,158,11,.15)">🏁</div><div><div class="sr-title">نتائج المباريات</div><div class="sr-sub">فور انتهاء المباراة</div></div></div>
+        <div class="toggle" id="tog-notif_results"></div>
+      </div>
+      <div class="setting-row" onclick="toggleSetting('notif_news')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(236,72,153,.15)">📰</div><div><div class="sr-title">أخبار عاجلة</div><div class="sr-sub">آخر أخبار كرة القدم</div></div></div>
+        <div class="toggle" id="tog-notif_news"></div>
+      </div>
+    </div>
+
+    <!-- Language -->
+    <div class="settings-section">
+      <div class="settings-title">🌐 اللغة والمنطقة</div>
+      <div class="setting-row" onclick="changeLang('ar')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(16,185,129,.15)">🇸🇦</div><div><div class="sr-title">العربية</div></div></div>
+        <div class="lang-badge" id="lang-ar">✓ محدد</div>
+      </div>
+      <div class="setting-row" onclick="changeLang('en')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(59,130,246,.15)">🇬🇧</div><div><div class="sr-title">English</div></div></div>
+        <div class="lang-badge" id="lang-en" style="opacity:.3">تحديد</div>
+      </div>
+      <div class="setting-row" onclick="changeLang('fr')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(236,72,153,.15)">🇫🇷</div><div><div class="sr-title">Français</div></div></div>
+        <div class="lang-badge" id="lang-fr" style="opacity:.3">تحديد</div>
+      </div>
+    </div>
+
+    <!-- Theme -->
+    <div class="settings-section">
+      <div class="settings-title">🎨 المظهر</div>
+      <div class="setting-row" onclick="toggleSetting('dark_mode')">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(99,102,241,.15)">🌙</div><div><div class="sr-title">الوضع الداكن</div></div></div>
+        <div class="toggle on" id="tog-dark_mode"></div>
+      </div>
+    </div>
+
+    <!-- Admin access -->
+    <div class="settings-section">
+      <div class="settings-title">⚙️ الإدارة</div>
+      <div class="setting-row" onclick="showPage('admin',null)">
+        <div class="sr-left"><div class="sr-icon" style="background:rgba(239,68,68,.15)">🔐</div><div><div class="sr-title">لوحة الإدارة</div><div class="sr-sub">للمشرفين فقط</div></div></div>
+        <div class="chevron">›</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:20px;font-size:11px;color:var(--t3)">كووورة v4.0 · جميع الحقوق محفوظة</div>
+  </div>
+
+  <!-- ─ ADMIN ───────────────────────────────────────────── -->
+  <div class="page" id="page-admin">
+    <div class="admin-lock" id="admin-lock">
+      <div class="lock-logo">🔐</div>
+      <div class="lock-title">لوحة الإدارة</div>
+      <div class="lock-sub">هذه المنطقة للمشرفين فقط</div>
+      <input class="lock-input" id="lock-pass" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')tryUnlock()">
+      <button class="lock-btn" onclick="tryUnlock()">دخول ←</button>
+    </div>
+
+    <div id="admin-body" style="display:none">
+
+      <!-- ── مفاتيح API ── -->
+      <div class="admin-section">
+        <div class="admin-title">🔑 مفاتيح API</div>
+        <div class="admin-body">
+          <div class="f-grp"><label class="f-lbl">رابط Backend (InfinityFree)</label><input class="f-in" id="cfg-backend" type="url" placeholder="https://موقعك.wuaze.com"></div>
+          <div class="f-grp"><label class="f-lbl">TheSportsDB API Key</label><input class="f-in" id="cfg-sdb" type="text" placeholder="3 (مجاني) أو مفتاحك"></div>
+          <div class="f-grp"><label class="f-lbl">API-Football Key (RapidAPI)</label><input class="f-in" id="cfg-apif" type="text" placeholder="مفتاح API-Football"></div>
+          <div class="f-grp"><label class="f-lbl">Football-Data.org Token</label><input class="f-in" id="cfg-fdata" type="text" placeholder="مفتاح football-data.org"></div>
+          <button class="btn-p" onclick="saveApiKeys()">💾 حفظ المفاتيح</button>
+        </div>
+      </div>
+
+      <!-- ── إعدادات الموقع ── -->
+      <div class="admin-section">
+        <div class="admin-title">⚙️ إعدادات الموقع</div>
+        <div class="admin-body">
+          <div class="f-grp"><label class="f-lbl">كود Adsterra</label><textarea class="f-ta" id="cfg-ads" placeholder="الصق كود Adsterra كاملاً..."></textarea></div>
+          <div class="f-grp"><label class="f-lbl">كلمة مرور جديدة للإدارة</label><input class="f-in" id="cfg-pass-new" type="password" placeholder="اتركها فارغة إن لم تغيرها"></div>
+          <button class="btn-p" onclick="saveSiteSettings()">💾 حفظ</button>
+          <button class="btn-p btn-out" onclick="logoutAdmin()">🚪 خروج</button>
+        </div>
+      </div>
+
+      <!-- ── كودات البث للمباريات الحية ── -->
+      <div class="admin-section">
+        <div class="admin-title">📺 كودات البث للمباريات الحية</div>
+        <div class="admin-body">
+          <p style="font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.6">المباريات الحالية تُجلب تلقائياً من API. فقط أضف كود التضمين للمباريات المباشرة أدناه.</p>
+          <div id="live-matches-admin">
+            <div class="loading-wrap"><div class="spin"></div>جاري تحميل المباريات الحية...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── البث المستقل ── -->
+      <div class="admin-section">
+        <div class="admin-title">📡 إضافة بث مستقل</div>
+        <div class="admin-body">
+          <div class="f-grp"><label class="f-lbl">عنوان البث</label><input class="f-in" id="st-title" type="text" placeholder="مثال: الكلاسيكو - مباشر"></div>
+          <div class="f-row">
+            <div class="f-grp"><label class="f-lbl">رابط URL</label><input class="f-in" id="st-url" type="url" placeholder="https://..."></div>
+            <div class="f-grp"><label class="f-lbl">الجودة</label><select class="f-sel" id="st-qual"><option>HD</option><option>FHD</option><option>4K</option><option>SD</option></select></div>
+          </div>
+          <div class="f-grp"><label class="f-lbl">كود التضمين (iframe)</label><textarea class="f-ta" id="st-embed" placeholder='&lt;iframe src="..."&gt;&lt;/iframe&gt;'></textarea></div>
+          <button class="btn-p" onclick="addStream()">➕ إضافة البث</button>
+        </div>
+      </div>
+
+    </div><!-- /admin-body -->
+  </div>
+
+</main>
+
+<!-- ══ BOTTOM NAV ════════════════════════════════════════════ -->
+<nav class="bnav">
+  <button class="ni on" data-p="matches" onclick="showPage('matches',this)"><span class="ni-icon">⚽</span>المباريات</button>
+  <button class="ni" data-p="cat" onclick="showPage('cat',this)"><span class="ni-icon">🏆</span>البطولات</button>
+  <button class="ni" data-p="news" onclick="showPage('news',this)"><span class="ni-icon">📰</span>الأخبار</button>
+  <button class="ni" data-p="stream" onclick="showPage('stream',this)"><span class="ni-icon">📡</span>البث</button>
+  <button class="ni" data-p="settings" onclick="showPage('settings',this)"><span class="ni-icon">⚙️</span>الإعدادات</button>
+</nav>
+
+<!-- ══ MATCH DETAIL MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST ════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════════════════
+//  CONFIG & STATE
+// ═══════════════════════════════════════════════════════════
+const CFG = {
+  backend:  ()=>ls('cfg_backend')||'',
+  sdbKey:   ()=>ls('cfg_sdb')||'3',
+  apifKey:  ()=>ls('cfg_apif')||'',
+  fdataKey: ()=>ls('cfg_fdata')||'',
+  adsCode:  ()=>ls('cfg_ads')||'',
+  adminPass:()=>ls('cfg_pass')||'koora2025',
+};
+const SDB   = 'https://www.thesportsdb.com/api/v1/json';
+const APIF  = 'https://v3.football.api-sports.io';
+const FDATA = 'https://api.football-data.org/v4';
+// FDATA league map: SDB id → football-data.org competition code
+const FDATA_MAP = {'4328':'PL','4335':'PD','4337':'BL1','4332':'SA','4331':'FL1','4346':'CL','4350':'EL'};
+
+let STATE = {
+  league: 'all', status: 'all', date: today(),
+  playerTab: 'squad', newsCat: 'all',
+  allMatches: [], adminUnlocked: false,
+  embedMap: {}, // matchId → embed code
+  streams: JSON.parse(ls('streams')||'[]'),
+  settings: JSON.parse(ls('settings')||'{"notif_goals":true,"notif_start":true,"notif_results":false,"notif_news":false,"dark_mode":true}'),
+  lang: ls('lang')||'ar',
+};
+
+function ls(k,v){if(v!==undefined){localStorage.setItem(k,v);return v}return localStorage.getItem(k)}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  buildDateStrip();
+  restoreSettings();
+  loadMatches();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  // Handle URL params
+  const p=new URLSearchParams(location.search);
+  if(p.get('tab')) showPage(p.get('tab'),document.querySelector(`[data-p="${p.get('tab')}"]`));
+  // Restore admin keys
+  document.getElementById('cfg-backend').value = CFG.backend();
+  document.getElementById('cfg-sdb').value     = CFG.sdbKey();
+  document.getElementById('cfg-apif').value    = CFG.apifKey();
+  document.getElementById('cfg-fdata').value   = CFG.fdataKey();
+  document.getElementById('cfg-ads').value     = CFG.adsCode();
+  if(CFG.adsCode()) injectAds();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  DATE STRIP
+// ═══════════════════════════════════════════════════════════
+function today(){return new Date().toISOString().slice(0,10)}
+function buildDateStrip(){
+  const strip=document.getElementById('date-strip');
+  const days=['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+  let html='';
+  for(let i=-2;i<=4;i++){
+    const d=new Date(); d.setDate(d.getDate()+i);
+    const iso=d.toISOString().slice(0,10);
+    const day=days[d.getDay()];
+    const num=d.getDate();
+    const cls=iso===STATE.date?'on':'';
+    html+=`<div class="date-chip ${cls}" onclick="setDate('${iso}',this)"><div class="dc-day">${i===0?'اليوم':day}</div><div class="dc-num">${num}</div></div>`;
+  }
+  strip.innerHTML=html;
+}
+function setDate(date,el){
+  STATE.date=date;
+  document.querySelectorAll('.date-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  loadMatches();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.getElementById('page-'+name).classList.add('on');
+  if(el){el.classList.add('on')}
+  else{document.querySelectorAll('.ni').forEach(n=>{if(n.dataset.p===name)n.classList.add('on')})}
+  const loaders={
+    matches:loadMatches, cat:loadCategories,
+    standings:loadStandings, players:()=>loadPlayers(STATE.playerTab),
+    news:loadNews, stream:loadStreams, admin:initAdmin
+  };
+  if(loaders[name]) loaders[name]();
+}
+function setLeague(lid,el){
+  STATE.league=lid;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  loadMatches(); loadStandings();
+}
+function setStatus(s,el){
+  STATE.status=s;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  renderMatches(filterMatches(STATE.allMatches));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+function toast(msg,ms=2600){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),ms);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SKELETON
+// ═══════════════════════════════════════════════════════════
+function skCards(n=5){
+  return Array.from({length:n},()=>`
+    <div class="sk-card">
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+        <div class="sk" style="height:11px;width:100px"></div>
+        <div class="sk" style="height:11px;width:60px"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:12px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="sk" style="width:46px;height:46px;border-radius:50%"></div>
+          <div class="sk" style="height:10px;width:70px"></div>
+        </div>
+        <div class="sk" style="width:64px;height:32px;border-radius:10px"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <div class="sk" style="width:46px;height:46px;border-radius:50%"></div>
+          <div class="sk" style="height:10px;width:70px"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  API FETCH WITH 3-SOURCE FALLBACK
+// ═══════════════════════════════════════════════════════════
+async function fetchWithFallback(leagueId, date){
+  const results = [];
+
+  // ── SOURCE 1: TheSportsDB ─────────────────────────────
+  try {
+    const endpoints = leagueId==='all'
+      ? [`eventsday.php?d=${date}&s=Soccer`]
+      : [`eventsnextleague.php?id=${leagueId}`,`eventspastleague.php?id=${leagueId}`];
+
+    for(const ep of endpoints){
+      const r = await Promise.race([
+        fetch(`${SDB}/${CFG.sdbKey()}/${ep}`),
+        timeout(5000)
+      ]);
+      const d = await r.json();
+      if(d?.events?.length){
+        results.push(...normSDB(d.events));
+        break;
+      }
+    }
+  } catch(e){}
+
+  // ── SOURCE 2: API-Football ───────────────────────────
+  if(results.length < 3 && CFG.apifKey()){
+    try {
+      const params = leagueId==='all'
+        ? `fixtures?date=${date}`
+        : `fixtures?league=${sdbToApif(leagueId)}&season=2024&date=${date}`;
+      const r = await Promise.race([
+        fetch(`${APIF}/${params}`,{headers:{'x-apisports-key':CFG.apifKey()}}),
+        timeout(5000)
+      ]);
+      const d = await r.json();
+      if(d?.response?.length){
+        results.push(...normApif(d.response));
+      }
+    } catch(e){}
+  }
+
+  // ── SOURCE 3: Football-Data.org ──────────────────────
+  if(results.length < 3 && CFG.fdataKey() && FDATA_MAP[leagueId]){
+    try {
+      const code=FDATA_MAP[leagueId];
+      const r = await Promise.race([
+        fetch(`${FDATA}/competitions/${code}/matches?dateFrom=${date}&dateTo=${date}`,
+          {headers:{'X-Auth-Token':CFG.fdataKey()}}),
+        timeout(5000)
+      ]);
+      const d = await r.json();
+      if(d?.matches?.length){
+        results.push(...normFdata(d.matches));
+      }
+    } catch(e){}
+  }
+
+  // Deduplicate by team names
+  const seen = new Set();
+  return results.filter(m=>{
+    const k=m.home_team+m.away_team;
+    if(seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+}
+
+function timeout(ms){return new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))}
+
+// Normalizers
+function normSDB(events){
+  return events.map(e=>({
+    id:'sdb_'+e.idEvent,
+    home_team:e.strHomeTeam||'', away_team:e.strAwayTeam||'',
+    home_logo:e.strHomeTeamBadge||null, away_logo:e.strAwayTeamBadge||null,
+    home_score:e.intHomeScore!=null?+e.intHomeScore:null,
+    away_score:e.intAwayScore!=null?+e.intAwayScore:null,
+    match_date:(e.dateEvent||'')+' '+(e.strTime||'00:00:00'),
+    status:e.strStatus==='Match Finished'?'finished':e.strProgress?'live':'upcoming',
+    minute:e.strProgress||null, league:e.strLeague||'',
+    round:e.intRound?'الجولة '+e.intRound:(e.strRound||''),
+    stadium:e.strVenue||'', _src:'sdb', _raw:e
+  }));
+}
+function normApif(fixtures){
+  return fixtures.map(f=>({
+    id:'apif_'+f.fixture.id,
+    home_team:f.teams.home.name||'', away_team:f.teams.away.name||'',
+    home_logo:f.teams.home.logo||null, away_logo:f.teams.away.logo||null,
+    home_score:f.goals.home, away_score:f.goals.away,
+    match_date:f.fixture.date,
+    status:f.fixture.status.short==='FT'?'finished':f.fixture.status.short==='1H'||f.fixture.status.short==='2H'||f.fixture.status.short==='HT'?'live':'upcoming',
+    minute:f.fixture.status.elapsed?f.fixture.status.elapsed+"'":null,
+    league:f.league.name||'', round:f.league.round||'', stadium:f.fixture.venue?.name||'',
+    _src:'apif', _raw:f
+  }));
+}
+function normFdata(matches){
+  return matches.map(m=>({
+    id:'fdata_'+m.id,
+    home_team:m.homeTeam.name||'', away_team:m.awayTeam.name||'',
+    home_logo:m.homeTeam.crest||null, away_logo:m.awayTeam.crest||null,
+    home_score:m.score?.fullTime?.home, away_score:m.score?.fullTime?.away,
+    match_date:m.utcDate, status:m.status==='FINISHED'?'finished':m.status==='IN_PLAY'?'live':'upcoming',
+    minute:null, league:m.competition?.name||'', round:m.matchday?'الجولة '+m.matchday:'',
+    stadium:'', _src:'fdata', _raw:m
+  }));
+}
+function sdbToApif(lid){
+  const map={'4328':39,'4335':140,'4337':78,'4332':135,'4331':61,'4346':2,'4350':3,'4480':307};
+  return map[lid]||39;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MATCHES
+// ═══════════════════════════════════════════════════════════
+async function loadMatches(){
+  const el=document.getElementById('matches-list');
+  el.innerHTML=skCards();
+  const data=await fetchWithFallback(STATE.league,STATE.date);
+  STATE.allMatches=data;
+  // Live badge
+  const liveN=data.filter(m=>m.status==='live').length;
+  const badge=document.getElementById('live-badge');
+  if(liveN>0){badge.style.display='flex';document.getElementById('live-n').textContent=liveN}
+  else badge.style.display='none';
+  renderMatches(filterMatches(data));
+}
+
+function filterMatches(list){
+  if(STATE.status==='all') return list;
+  return list.filter(m=>m.status===STATE.status);
+}
+
+function renderMatches(list){
+  const el=document.getElementById('matches-list');
+  if(!list.length){
+    el.innerHTML=`<div class="empty-wrap"><div class="empty-icon">🏟️</div><div class="empty-txt">لا توجد مباريات في هذا اليوم</div></div>`;
+    return;
+  }
+  // Group by league
+  const groups={};
+  list.forEach(m=>{
+    const key=m.league||'مباريات أخرى';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(m);
+  });
+  let html='';
+  for(const [league,matches] of Object.entries(groups)){
+    html+=`<div class="section-lbl">${league}</div>`;
+    matches.forEach(m=>{ html+=matchCard(m); });
+  }
+  el.innerHTML=html;
+}
+
+function matchCard(m){
+  const isLive=m.status==='live';
+  const isDone=m.status==='finished';
+  const embed=STATE.embedMap[m.id]||null;
+  const statusBadge=isLive
+    ?`<div class="mc-status-live"><div class="live-dot"></div>مباشر${m.minute?' · '+m.minute:''}</div>`
+    :isDone
+    ?`<div class="mc-status-end">انتهت</div>`
+    :m.status==='postponed'
+    ?`<div class="mc-status-pp">مؤجلة</div>`
+    :`<div class="mc-status-up">${fmtTime(m.match_date)}</div>`;
+  const hBadge=m.home_logo
+    ?`<img class="mc-badge" src="${m.home_logo}" alt="" loading="lazy" onerror="this.outerHTML='<div class=mc-badge-ph>🏟️</div>'">`
+    :`<div class="mc-badge-ph">🏟️</div>`;
+  const aBadge=m.away_logo
+    ?`<img class="mc-badge" src="${m.away_logo}" alt="" loading="lazy" onerror="this.outerHTML='<div class=mc-badge-ph>🏟️</div>'">`
+    :`<div class="mc-badge-ph">🏟️</div>`;
+  const scoreBlock=(m.home_score!=null&&m.away_score!=null)
+    ?`<div class="mc-score">${m.home_score}<span class="mc-score-sep">-</span>${m.away_score}</div>`
+    :`<div class="mc-vs">VS</div>`;
+  return `
+  <div class="mcard ${isLive?'mcard-live':''}" onclick="openDetail('${m.id}')">
+    <div class="mc-top">
+      <div class="mc-league">${m.round||''}</div>
+      ${statusBadge}
+    </div>
+    <div class="mc-teams">
+      <div class="mc-team">${hBadge}<div class="mc-tname">${m.home_team}</div></div>
+      <div class="mc-score-wrap">${scoreBlock}${isLive&&m.minute?`<div class="mc-live-min">${m.minute}'</div>`:''}
+      </div>
+      <div class="mc-team">${aBadge}<div class="mc-tname">${m.away_team}</div></div>
+    </div>
+    <div class="mc-foot">
+      <span>${m.stadium?'📍 '+m.stadium.slice(0,22):''}</span>
+      ${(embed||isLive)?`<div class="mc-watch">📺 مشاهدة</div>`:``}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MATCH DETAIL
+// ═══════════════════════════════════════════════════════════
+async function openDetail(id){
+  const modal=document.getElementById('modal');
+  const body=document.getElementById('modal-body');
+  modal.classList.add('on');
+  body.innerHTML=`<div class="loading-wrap"><div class="spin"></div>جاري التحميل...</div>`;
+  const match=STATE.allMatches.find(m=>m.id===id);
+  if(!match){body.innerHTML=`<div class="empty-wrap"><div class="empty-icon">😕</div><div class="empty-txt">لا توجد بيانات</div></div>`;return;}
+  // Try to fetch detailed info from SDB
+  let details=null;
+  if(id.startsWith('sdb_')){
+    try{
+      const r=await Promise.race([fetch(`${SDB}/${CFG.sdbKey()}/lookupevent.php?id=${id.replace('sdb_','')}`),timeout(5000)]);
+      const d=await r.json();
+      details=d?.events?.[0]||null;
+    }catch{}
+  }
+  renderDetail(match,details,body);
+}
+
+function renderDetail(m,raw,el){
+  const isLive=m.status==='live';
+  const embed=STATE.embedMap[m.id]||null;
+  const score=(m.home_score!=null&&m.away_score!=null)
+    ?`${m.home_score}<span style="color:var(--t3);font-weight:400;margin:0 4px">-</span>${m.away_score}`
+    :`<span style="font-size:22px;color:var(--t3)">VS</span>`;
+
+  const tabs=['ℹ️ معلومات'];
+  if(embed||isLive) tabs.unshift('📺 البث');
+  if(raw?.strDescriptionEN) tabs.push('📋 ملخص');
+
+  el.innerHTML=`
+    <div class="detail-hero">
+      <div class="detail-teams">
+        <div class="mc-team">
+          ${m.home_logo?`<img style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))" src="${m.home_logo}" onerror="this.outerHTML='<div class=mc-badge-ph>🏟️</div>'">`:`<div class="mc-badge-ph" style="width:56px;height:56px;font-size:28px">🏟️</div>`}
+          <div class="mc-tname" style="font-size:13px;margin-top:8px">${m.home_team}</div>
+        </div>
+        <div style="text-align:center">
+          <div class="detail-score">${score}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px">${m.league||''}</div>
+          ${isLive&&m.minute?`<div style="font-size:12px;font-weight:800;color:var(--red);margin-top:4px;animation:pulse 1.4s infinite">${m.minute}'</div>`:''}
+        </div>
+        <div class="mc-team">
+          ${m.away_logo?`<img style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.5))" src="${m.away_logo}" onerror="this.outerHTML='<div class=mc-badge-ph>🏟️</div>'">`:`<div class="mc-badge-ph" style="width:56px;height:56px;font-size:28px">🏟️</div>`}
+          <div class="mc-tname" style="font-size:13px;margin-top:8px">${m.away_team}</div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-tabs">${tabs.map((t,i)=>`<div class="dtab${i===0?' on':''}" onclick="switchDTab(${i},this)">${t}</div>`).join('')}</div>
+    ${tabs.map((t,i)=>`<div class="dp ${i===0?'on':''}" id="dp${i}">
+      ${t.includes('البث') ? `
+        ${embed ? `<div class="embed-wrap">${embed}</div>`
+          :`<div class="embed-wrap"><div class="embed-placeholder"><div class="embed-ph-icon">📺</div><div>البث غير متاح حالياً</div><div style="font-size:10px;color:var(--t3)">يمكنك إضافة كود البث من الإدارة</div></div></div>`}
+      ` : t.includes('معلومات') ? `
+        ${m.stadium?`<div class="info-row"><span class="info-row-lbl">📍 الملعب</span><span class="info-row-val">${m.stadium}</span></div>`:''}
+        ${m.round?`<div class="info-row"><span class="info-row-lbl">🏆 الجولة</span><span class="info-row-val">${m.round}</span></div>`:''}
+        <div class="info-row"><span class="info-row-lbl">📅 الموعد</span><span class="info-row-val">${fmtDate(m.match_date)}</span></div>
+        <div class="info-row"><span class="info-row-lbl">📊 الحالة</span><span class="info-row-val">${statusLabel(m.status)}</span></div>
+        ${raw?.strThumb?`<img src="${raw.strThumb}" style="width:100%;border-radius:12px;margin-top:10px;max-height:160px;object-fit:cover">`:''}
+      ` : t.includes('ملخص') ? `
+        <div style="background:var(--bg2);border-radius:12px;padding:14px;font-size:12px;line-height:1.7;color:var(--t2)">${raw?.strDescriptionEN||''}</div>
+      ` : ''}
+    </div>`).join('')}
+  `;
+}
+
+function switchDTab(i,el){
+  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.dp').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('dp'+i).classList.add('on');
+}
+function closeModal(e){if(e.target===document.getElementById('modal'))document.getElementById('modal').classList.remove('on')}
+
+// ═══════════════════════════════════════════════════════════
+//  CATEGORIES
+// ═══════════════════════════════════════════════════════════
+const LEAGUES=[
+  {id:'4480',name:'دوري روشن السعودي',flag:'🇸🇦',logo:'https://www.thesportsdb.com/images/media/league/badge/qptr2p1622729381.png'},
+  {id:'4328',name:'البريميرليج',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',logo:'https://www.thesportsdb.com/images/media/league/badge/r0cxut1549879310.png'},
+  {id:'4335',name:'لاليغا الإسبانية',flag:'🇪🇸',logo:'https://www.thesportsdb.com/images/media/league/badge/7onmyv1534768460.png'},
+  {id:'4346',name:'دوري أبطال أوروبا',flag:'⭐',logo:'https://www.thesportsdb.com/images/media/league/badge/ql7sy01635507687.png'},
+  {id:'4337',name:'بوندسليغا',flag:'🇩🇪',logo:'https://www.thesportsdb.com/images/media/league/badge/0j55yv1534764727.png'},
+  {id:'4332',name:'سيري آ الإيطالية',flag:'🇮🇹',logo:'https://www.thesportsdb.com/images/media/league/badge/0s7hrb1534773164.png'},
+  {id:'4331',name:'ليغ 1 الفرنسي',flag:'🇫🇷',logo:'https://www.thesportsdb.com/images/media/league/badge/qe7gn01617960421.png'},
+  {id:'4350',name:'الدوري الأوروبي',flag:'🔶',logo:'https://www.thesportsdb.com/images/media/league/badge/7g1zve1553885235.png'},
+  {id:'4351',name:'كأس أمم إفريقيا',flag:'🌍',logo:''},
+  {id:'4399',name:'الدوري الأرجنتيني',flag:'🇦🇷',logo:''},
+  {id:'4336',name:'دوري برازيل',flag:'🇧🇷',logo:''},
+  {id:'4387',name:'MLS الأمريكي',flag:'🇺🇸',logo:''},
+  {id:'4438',name:'كأس العالم',flag:'🏆',logo:''},
+  {id:'4434',name:'كأس أوروبا',flag:'🇪🇺',logo:''},
+  {id:'4329',name:'كأس الاتحاد FA',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',logo:''},
+  {id:'4342',name:'كوبا ديل ري',flag:'🇪🇸',logo:''},
+  {id:'4348',name:'كوبا إيطاليا',flag:'🇮🇹',logo:''},
+  {id:'4392',name:'سوبر كأس إسبانيا',flag:'🇪🇸',logo:''},
+];
+
+function loadCategories(){
+  document.getElementById('cat-grid').innerHTML=LEAGUES.map(l=>`
+    <div class="cat-item" onclick="catClick('${l.id}')">
+      ${l.logo?`<img class="cat-img" src="${l.logo}" onerror="this.outerHTML='<div class=cat-img-ph>${l.flag}</div>'">`:`<div class="cat-img-ph">${l.flag}</div>`}
+      <div class="cat-name">${l.name}</div>
+    </div>`).join('');
+}
+function catClick(lid){
+  STATE.league=lid;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  const tab=document.querySelector(`[data-lid="${lid}"]`);
+  if(tab) tab.classList.add('on');
+  showPage('matches',document.querySelector('[data-p="matches"]'));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STANDINGS
+// ═══════════════════════════════════════════════════════════
+async function loadStandings(){
+  const el=document.getElementById('standings-list');
+  el.innerHTML=`<div class="loading-wrap"><div class="spin"></div>جاري التحميل...</div>`;
+
+  let rows=[];
+  // SDB
+  if(STATE.league!=='all'){
+    try{
+      const r=await Promise.race([fetch(`${SDB}/${CFG.sdbKey()}/lookuptable.php?l=${STATE.league}&s=2024-2025`),timeout(5000)]);
+      const d=await r.json();
+      if(d?.table?.length) rows=d.table.map(t=>({
+        team_name:t.strTeam, team_logo:t.strTeamBadge,
+        played:+t.intPlayed,won:+t.intWin,drawn:+t.intDraw,lost:+t.intLoss,
+        goals_for:+t.intGoalsFor,goals_against:+t.intGoalsAgainst,
+        points:+t.intPoints, form:t.strForm||''
+      }));
+    }catch{}
+  }
+  // Football-data fallback
+  if(!rows.length && CFG.fdataKey() && FDATA_MAP[STATE.league]){
+    try{
+      const code=FDATA_MAP[STATE.league];
+      const r=await Promise.race([fetch(`${FDATA}/competitions/${code}/standings`,{headers:{'X-Auth-Token':CFG.fdataKey()}}),timeout(5000)]);
+      const d=await r.json();
+      if(d?.standings?.[0]?.table?.length) rows=d.standings[0].table.map(t=>({
+        team_name:t.team.name,team_logo:t.team.crest,
+        played:t.playedGames,won:t.won,drawn:t.draw,lost:t.lost,
+        goals_for:t.goalsFor,goals_against:t.goalsAgainst,points:t.points,form:t.form||''
+      }));
+    }catch{}
+  }
+
+  if(!rows.length){el.innerHTML=`<div class="empty-wrap"><div class="empty-icon">🏆</div><div class="empty-txt">اختر دورياً لعرض الترتيب</div></div>`;return;}
+
+  el.innerHTML=rows.map((r,i)=>{
+    const cls=i<1?'cl':i<3?'cl2':i>=rows.length-3?'rl':'';
+    const form=(r.form||'').split('').slice(-5).map(c=>`<div class="form-d f${c.toLowerCase()}"></div>`).join('');
+    return `<div class="st-row ${cls}">
+      <div class="st-rank" style="${i<3?'color:var(--yellow)':''}">${i+1}</div>
+      <div class="st-team-cell">
+        ${r.team_logo?`<img class="st-logo" src="${r.team_logo}" onerror="this.style.display='none'">`:''}
+        <span class="st-tname">${r.team_name}</span>
+      </div>
+      <div style="color:var(--t2)">${r.played}</div>
+      <div style="color:var(--t2)">${r.won}</div>
+      <div style="color:var(--t2)">${r.drawn}</div>
+      <div style="color:var(--t2)">${r.lost}</div>
+      <div class="st-pts">${r.points}</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PLAYERS
+// ═══════════════════════════════════════════════════════════
+function setPlayerTab(tab,el){
+  STATE.playerTab=tab;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  loadPlayers(tab);
+}
+async function loadPlayers(tab){
+  const el=document.getElementById('players-list');
+  el.innerHTML=`<div class="loading-wrap"><div class="spin"></div>جاري التحميل...</div>`;
+
+  // Try backend first
+  let players=[];
+  if(CFG.backend()){
+    try{
+      const action=tab==='scorers'?'scorers':tab==='assists'?'assists':'all';
+      const r=await Promise.race([fetch(`${CFG.backend()}/api/players.php?action=${action}`),timeout(5000)]);
+      const d=await r.json();
+      if(d.success&&d.data.length) players=d.data;
+    }catch{}
+  }
+
+  // SDB scorers if no backend
+  if(!players.length && STATE.league!=='all' && tab==='scorers'){
+    try{
+      const r=await Promise.race([fetch(`${SDB}/${CFG.sdbKey()}/eventsnextleague.php?id=${STATE.league}`),timeout(5000)]);
+      // SDB free doesn't have scorers, use demo
+    }catch{}
+  }
+
+  if(!players.length){
+    el.innerHTML=`<div class="empty-wrap"><div class="empty-icon">👥</div><div class="empty-txt">أضف اللاعبين من Backend<br><span style="font-size:10px;color:var(--t3)">أو اختر دورياً من الإعدادات</span></div></div>`;
+    return;
+  }
+
+  if(tab==='squad'){
+    el.innerHTML=`<div class="p2-grid">${players.map(p=>{
+      const posClass=p.position==='مهاجم'?'p-badge-g':p.position==='وسط'?'p-badge-m':p.position==='مدافع'?'p-badge-d':'p-badge-k';
+      return `<div class="pcard">
+        ${p.photo?`<img class="p-avatar" src="${p.photo}">`:`<div class="p-avatar-ph">⚽</div>`}
+        <div class="p-name">${p.name}</div>
+        <div class="p-team">${p.team_logo?`<img src="${p.team_logo}" style="width:12px;height:12px;object-fit:contain">`:''} ${p.team_name||'-'}</div>
+        <span class="p-badge ${posClass}">${p.position||'-'}</span>
+        <div class="p-stats">
+          <div><div class="ps-val" style="color:var(--green)">${p.goals||0}</div><div class="ps-lbl">هدف</div></div>
+          <div><div class="ps-val" style="color:var(--blue)">${p.assists||0}</div><div class="ps-lbl">تمريرة</div></div>
+          ${p.jersey_number?`<div><div class="ps-val" style="color:var(--t2)">#${p.jersey_number}</div><div class="ps-lbl">رقم</div></div>`:''}
+        </div>
+        ${p.market_value?`<div style="font-size:10px;color:var(--yellow);margin-top:6px;font-weight:700">💰 ${p.market_value}</div>`:''}
+      </div>`;
+    }).join('')}</div>`;
+  } else {
+    const stat=tab==='assists'?'assists':'goals';
+    const label=tab==='assists'?'تمريرة':'هدف';
+    const color=tab==='assists'?'var(--blue)':'var(--green)';
+    const medals=['🥇','🥈','🥉'];
+    el.innerHTML=players.map((p,i)=>`
+      <div class="scorer-row">
+        <div class="s-rank">${medals[i]||i+1}</div>
+        ${p.photo?`<img class="s-photo" src="${p.photo}">`:`<div class="s-photo-ph">⚽</div>`}
+        <div class="s-info">
+          <div class="s-name">${p.name}</div>
+          <div class="s-team">${p.team_logo?`<img src="${p.team_logo}" style="width:12px;height:12px;object-fit:contain">`:''}${p.team_name||'-'}${p.nationality?' · '+p.nationality:''}</div>
+        </div>
+        <div class="s-stat"><div class="s-stat-v" style="color:${color}">${p[stat]||0}</div><div class="s-stat-l">${label}</div></div>
+      </div>`).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  NEWS (RSS Feeds)
+// ═══════════════════════════════════════════════════════════
+const NEWS_FEEDS={
+  all:   'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.goal.com%2Ffeeds%2Fnews%3Fid%3Dtop-stories%26fmt%3Drss%26outputType%3Djson',
+  fifa:  'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.fifa.com%2Frss-feeds%2Fnews%2F',
+  transfers:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.transfermarkt.com%2Fstatistik%2Ftransfers%2Frss',
+  champions:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.uefa.com%2Frss.xml',
+  arab:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.kooora.com%2Frss%2Fnews.xml',
+};
+
+function setNewsCat(cat,el){
+  STATE.newsCat=cat;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  loadNews();
+}
+
+async function loadNews(){
+  const el=document.getElementById('news-list');
+  el.innerHTML=`<div class="loading-wrap"><div class="spin"></div>جاري تحميل الأخبار...</div>`;
+  let items=[];
+
+  // Try RSS2JSON for multiple feeds
+  const feedUrls=[
+    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.bbc.com%2Fsport%2Ffootball%2F0%2Frss.xml',
+    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.skysports.com%2Frss%2F12040',
+    'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.espn.com%2Fespn%2Frss%2Fsoccer%2Fnews',
+  ];
+
+  // Backend news first
+  if(CFG.backend()){
+    try{
+      const r=await Promise.race([fetch(`${CFG.backend()}/api/general.php?action=news`),timeout(4000)]);
+      const d=await r.json();
+      if(d.success&&d.data.length) items=[...items,...d.data.map(n=>({
+        title:n.title, desc:n.body, image:n.image, pubDate:n.created_at,
+        link:'#', category:n.category
+      }))];
+    }catch{}
+  }
+
+  // RSS feeds
+  for(const url of feedUrls.slice(0,2)){
+    try{
+      const r=await Promise.race([fetch(url),timeout(5000)]);
+      const d=await r.json();
+      if(d.items?.length) items=[...items,...d.items.slice(0,8).map(i=>({
+        title:i.title, desc:i.description?.replace(/<[^>]+>/g,'').slice(0,120),
+        image:i.thumbnail||i.enclosure?.link||null,
+        pubDate:i.pubDate, link:i.link, category:'عام'
+      }))];
+    }catch{}
+  }
+
+  if(!items.length){
+    el.innerHTML=`<div class="empty-wrap"><div class="empty-icon">📰</div><div class="empty-txt">لا توجد أخبار حالياً<br><span style="font-size:10px;color:var(--t3)">تأكد من الاتصال بالإنترنت</span></div></div>`;
+    return;
+  }
+
+  const [first,...rest]=items;
+  el.innerHTML=`
+    <div class="news-featured" onclick="${first.link&&first.link!=='#'?`window.open('${first.link}','_blank')`:''}">
+      ${first.image?`<img class="nf-img" src="${first.image}" onerror="this.style.display='none'" loading="lazy">`:''}
+      <div class="nf-body">
+        <div class="nf-cat">${first.category||'كرة القدم'}</div>
+        <div class="nf-title">${first.title}</div>
+        <div class="nf-meta"><span>⏰ ${timeAgo(first.pubDate)}</span></div>
+      </div>
+    </div>
+    ${rest.map(n=>`
+    <div class="news-item" onclick="${n.link&&n.link!=='#'?`window.open('${n.link}','_blank')`:''}">
+      ${n.image?`<img class="ni-img" src="${n.image}" onerror="this.style.display='none'" loading="lazy">`:`<div class="ni-img" style="display:flex;align-items:center;justify-content:center;font-size:28px">📰</div>`}
+      <div class="ni-body">
+        <div class="ni-cat">${n.category||'كرة القدم'}</div>
+        <div class="ni-title">${n.title}</div>
+        <div class="ni-time">⏰ ${timeAgo(n.pubDate)}</div>
+      </div>
+    </div>`).join('')}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STREAMS
+// ═══════════════════════════════════════════════════════════
+async function loadStreams(){
+  const el=document.getElementById('streams-list');
+  // Load from backend + local
+  let streams=[...STATE.streams];
+  if(CFG.backend()){
+    try{
+      const r=await Promise.race([fetch(`${CFG.backend()}/api/general.php?action=streams`),timeout(5000)]);
+      const d=await r.json();
+      if(d.success) streams=[...d.data,...streams];
+    }catch{}
+  }
+  if(!streams.length){
+    el.innerHTML=`<div class="empty-wrap"><div class="empty-icon">📡</div><div class="empty-txt">لا يوجد بث متاح حالياً<br><span style="font-size:10px;color:var(--t3)">أضف روابط البث من الإدارة</span></div></div>`;
+    return;
+  }
+  el.innerHTML=streams.map(s=>`
+    <div class="stream-card">
+      ${s.embed_code||s.embedCode
+        ?`<div class="embed-wrap">${s.embed_code||s.embedCode}</div>`
+        :`<div class="stream-thumb" onclick="${s.stream_url?`window.open('${s.stream_url}','_blank')`:''}">
+          <div class="play-btn">▶</div>
+          <div class="stream-title-ov">${s.title}</div>
+        </div>`}
+      <div class="stream-info">
+        <div class="stream-meta">${s.home_team&&s.away_team?s.home_team+' VS '+s.away_team:s.title}<br>
+          <span style="color:var(--green);font-size:10px">${s.quality||'HD'} · ${s.language||'عربي'}</span>
+        </div>
+        ${s.stream_url?`<button class="watch-btn" onclick="window.open('${s.stream_url}','_blank')">▶ مشاهدة</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════════════════
+function initAdmin(){
+  if(!STATE.adminUnlocked){
+    document.getElementById('admin-lock').style.display='flex';
+    document.getElementById('admin-body').style.display='none';
+  } else showAdminBody();
+}
+function tryUnlock(){
+  const p=document.getElementById('lock-pass').value;
+  if(p===CFG.adminPass()){
+    STATE.adminUnlocked=true; showAdminBody();
+  } else {
+    toast('❌ كلمة مرور خاطئة');
+    document.getElementById('lock-pass').value='';
+  }
+}
+function showAdminBody(){
+  document.getElementById('admin-lock').style.display='none';
+  document.getElementById('admin-body').style.display='block';
+  loadLiveMatchesAdmin();
+}
+function logoutAdmin(){
+  STATE.adminUnlocked=false;
+  document.getElementById('lock-pass').value='';
+  initAdmin();
+}
+
+async function loadLiveMatchesAdmin(){
+  const el=document.getElementById('live-matches-admin');
+  // Get all matches (live + upcoming)
+  const matches=STATE.allMatches.filter(m=>m.status==='live'||m.status==='upcoming');
+  if(!matches.length){
+    // Reload
+    const data=await fetchWithFallback('all',today());
+    STATE.allMatches=[...STATE.allMatches,...data];
+  }
+  const liveUpcoming=STATE.allMatches.filter(m=>m.status==='live'||m.status==='upcoming').slice(0,15);
+  if(!liveUpcoming.length){
+    el.innerHTML=`<div style="font-size:12px;color:var(--t2)">لا توجد مباريات حية أو قادمة الآن</div>`;
+    return;
+  }
+  el.innerHTML=liveUpcoming.map(m=>`
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700">${m.home_team} vs ${m.away_team}</div>
+        <div style="font-size:10px;color:${m.status==='live'?'var(--red)':'var(--blue)'}">
+          ${m.status==='live'?'🔴 مباشر':'📅 قادمة'}
+        </div>
+      </div>
+      <label class="f-lbl">كود التضمين (iframe) للبث المباشر</label>
+      <textarea class="f-ta" id="embed-${m.id}" placeholder='&lt;iframe src="..."&gt;&lt;/iframe&gt;' style="min-height:70px">${STATE.embedMap[m.id]||''}</textarea>
+      <button class="btn-p" style="margin-top:6px" onclick="saveEmbed('${m.id}')">💾 حفظ كود البث</button>
+    </div>`).join('');
+}
+
+function saveEmbed(id){
+  const code=document.getElementById('embed-'+id)?.value||'';
+  STATE.embedMap[id]=code;
+  ls('embeds',JSON.stringify(STATE.embedMap));
+  toast('✅ تم حفظ كود البث');
+}
+
+function saveApiKeys(){
+  ls('cfg_backend',document.getElementById('cfg-backend').value.trim());
+  ls('cfg_sdb',document.getElementById('cfg-sdb').value.trim()||'3');
+  ls('cfg_apif',document.getElementById('cfg-apif').value.trim());
+  ls('cfg_fdata',document.getElementById('cfg-fdata').value.trim());
+  toast('✅ تم حفظ مفاتيح API');
+}
+function saveSiteSettings(){
+  const ads=document.getElementById('cfg-ads').value.trim();
+  const newPass=document.getElementById('cfg-pass-new').value.trim();
+  if(ads){ls('cfg_ads',ads);injectAds();}
+  if(newPass){ls('cfg_pass',newPass);}
+  toast('✅ تم حفظ الإعدادات');
+}
+async function addStream(){
+  const title=document.getElementById('st-title').value.trim();
+  if(!title){toast('⚠️ أدخل عنوان البث');return;}
+  const s={
+    id:'local_'+Date.now(), title,
+    stream_url:document.getElementById('st-url').value.trim(),
+    embed_code:document.getElementById('st-embed').value.trim(),
+    quality:document.getElementById('st-qual').value,
+    language:'عربي'
+  };
+  STATE.streams.unshift(s);
+  ls('streams',JSON.stringify(STATE.streams));
+  if(CFG.backend()){
+    try{
+      await fetch(`${CFG.backend()}/api/general.php?action=add_stream`,{method:'POST',body:JSON.stringify({
+        title:s.title,stream_url:s.stream_url,embed_code:s.embed_code,quality:s.quality
+      })});
+    }catch{}
+  }
+  toast('✅ تمت إضافة البث');
+  document.getElementById('st-title').value='';
+  document.getElementById('st-url').value='';
+  document.getElementById('st-embed').value='';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SETTINGS
+// ═══════════════════════════════════════════════════════════
+function toggleSetting(key){
+  STATE.settings[key]=!STATE.settings[key];
+  ls('settings',JSON.stringify(STATE.settings));
+  const tog=document.getElementById('tog-'+key);
+  if(tog) STATE.settings[key]?tog.classList.add('on'):tog.classList.remove('on');
+}
+function restoreSettings(){
+  Object.entries(STATE.settings).forEach(([k,v])=>{
+    const tog=document.getElementById('tog-'+k);
+    if(tog) v?tog.classList.add('on'):tog.classList.remove('on');
+  });
+}
+function changeLang(lang){
+  STATE.lang=lang; ls('lang',lang);
+  ['ar','en','fr'].forEach(l=>{
+    const el=document.getElementById('lang-'+l);
+    if(el) el.style.opacity=l===lang?'1':'.3';
+    if(el) el.textContent=l===lang?'✓ محدد':'تحديد';
+  });
+  toast('✅ تم تغيير اللغة');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADS
+// ═══════════════════════════════════════════════════════════
+function injectAds(){
+  const code=CFG.adsCode();
+  if(!code) return;
+  const old=document.getElementById('_ads');
+  if(old) old.remove();
+  const wrap=document.createElement('div');
+  wrap.id='_ads';
+  wrap.innerHTML=code;
+  document.body.appendChild(wrap);
+  wrap.querySelectorAll('script').forEach(s=>{
+    const ns=document.createElement('script');
+    s.src?ns.src=s.src:ns.textContent=s.textContent;
+    document.head.appendChild(ns);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SEARCH
+// ═══════════════════════════════════════════════════════════
+function openSearch(){
+  const q=prompt('🔍 ابحث عن فريق أو مباراة...');
+  if(!q) return;
+  const results=STATE.allMatches.filter(m=>
+    m.home_team.toLowerCase().includes(q.toLowerCase())||
+    m.away_team.toLowerCase().includes(q.toLowerCase())
+  );
+  if(!results.length){toast('لا توجد نتائج للبحث: '+q);return;}
+  renderMatches(results);
+  showPage('matches',document.querySelector('[data-p="matches"]'));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════
+function fmtTime(d){
+  if(!d) return '';
+  try{
+    const dt=new Date(d);
+    return dt.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit'});
+  }catch{return d}
+}
+function fmtDate(d){
+  if(!d) return '';
+  try{
+    return new Date(d).toLocaleString('ar-SA',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  }catch{return d}
+}
+function statusLabel(s){return s==='live'?'🔴 مباشر':s==='finished'?'✅ انتهت':'📅 قادمة'}
+function timeAgo(d){
+  if(!d) return '';
+  try{
+    const sec=Math.floor((Date.now()-new Date(d))/1000);
+    if(sec<60) return 'الآن';
+    if(sec<3600) return Math.floor(sec/60)+' دقيقة';
+    if(sec<86400) return Math.floor(sec/3600)+' ساعة';
+    return Math.floor(sec/86400)+' يوم';
+  }catch{return ''}
+}
+// Restore embed map from storage
+STATE.embedMap=JSON.parse(ls('embeds')||'{}');
+</script>
+</body>
+</html>
