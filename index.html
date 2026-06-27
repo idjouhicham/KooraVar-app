@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#03080f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="كووورة">
+  <title>كووورة</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            pitch: { 950: '#03080f', 900: '#070e1a', 800: '#0d1829', 700: '#142035', 600: '#1c2d47' },
+            lime: { 400: '#a3e635', 500: '#84cc16', 300: '#bef264' },
+            red: { live: '#ef4444' },
+          },
+          fontFamily: { cairo: ['Cairo', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #03080f;
+      overscroll-behavior: none;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* ── Skeleton shimmer ── */
+    .skeleton {
+      background: linear-gradient(90deg, #0d1829 25%, #142035 50%, #0d1829 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    /* ── Live pulse ── */
+    .live-ring {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, .6);
+      animation: live-pulse 1.6s infinite;
+    }
+
+    @keyframes live-pulse {
+      70% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0)
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0)
+      }
+    }
+
+    /* ── Score font ── */
+    .score-num {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    /* ── Page transition ── */
+    .page {
+      display: none;
+      animation: fadeUp .22s ease;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    /* ── Tab active underline ── */
+    .nav-tab {
+      position: relative;
+    }
+
+    .nav-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 32px;
+      height: 3px;
+      background: #84cc16;
+      border-radius: 2px;
+    }
+
+    /* ── Toast ── */
+    #toast {
+      transition: all .3s;
+    }
+
+    /* ── Card hover ── */
+    .match-card {
+      transition: border-color .2s, transform .15s;
+    }
+
+    .match-card:active {
+      transform: scale(.985);
+      border-color: #84cc16 !important;
+    }
+
+    /* ── League chip ── */
+    .league-chip {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .4px;
+    }
+
+    /* ── Standing top3 ── */
+    .top1 {
+      border-right: 3px solid #fbbf24;
+    }
+
+    .top2 {
+      border-right: 3px solid #94a3b8;
+    }
+
+    .top3 {
+      border-right: 3px solid #f97316;
+    }
+
+    /* ── Bottom safe area ── */
+    .bottom-nav {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    /* ── Scrollable tabs no-bar ── */
+    .scroll-tabs {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+
+<body class="text-white min-h-dvh">
+
+  <!-- ════════════════════════════════
+     HEADER
+════════════════════════════════ -->
+  <header
+    class="sticky top-0 z-50 bg-pitch-950/95 backdrop-blur border-b border-pitch-700 flex items-center justify-between px-4 h-14">
+    <div class="text-xl font-black tracking-tight">كوو<span class="text-lime-500">رة</span></div>
+    <div class="flex items-center gap-2">
+      <div id="live-count"
+        class="hidden items-center gap-1.5 bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold px-3 py-1.5 rounded-full">
+        <span class="w-1.5 h-1.5 bg-red-500 rounded-full live-ring inline-block"></span>
+        <span id="live-num">0</span> مباشر
+      </div>
+      <button onclick="showPage('admin',document.querySelector('[data-page=admin]'))"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-pitch-800 text-gray-400 text-base">⚙</button>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════
+     LEAGUE TABS (horizontal scroll)
+════════════════════════════════ -->
+  <div class="scroll-tabs bg-pitch-900 border-b border-pitch-700 flex" id="league-tabs">
+    <button class="nav-tab active flex-shrink-0 text-xs font-bold px-4 py-3 text-lime-400 whitespace-nowrap"
+      onclick="selectLeague('all',this)">⭐ الكل</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4328',this)">🏴󠁧󠁢󠁥󠁮󠁧󠁿 البريميرليج</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4335',this)">🇪🇸 لاليغا</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4480',this)">🇸🇦 دوري روشن</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4337',this)">🇩🇪 بوندسليغا</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4331',this)">🇫🇷 ليغ 1</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4332',this)">🇮🇹 سيري آ</button>
+    <button class="nav-tab flex-shrink-0 text-xs font-bold px-4 py-3 text-gray-400 whitespace-nowrap"
+      onclick="selectLeague('4346',this)">🌍 دوري أبطال</button>
+  </div>
+
+  <!-- ════════════════════════════════
+     PAGES
+════════════════════════════════ -->
+  <main id="app" class="pb-20">
+
+    <!-- ── MATCHES ── -->
+    <div class="page active" id="page-matches">
+      <!-- Status filter pills -->
+      <div class="scroll-tabs flex gap-2 px-4 py-3">
+        <button
+          class="pill-btn active flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border border-lime-500 bg-lime-500/10 text-lime-400"
+          onclick="filterStatus('all',this)">الكل</button>
+        <button
+          class="pill-btn flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border border-pitch-600 text-gray-400"
+          onclick="filterStatus('live',this)">🔴 مباشر</button>
+        <button
+          class="pill-btn flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border border-pitch-600 text-gray-400"
+          onclick="filterStatus('upcoming',this)">📅 قادمة</button>
+        <button
+          class="pill-btn flex-shrink-0 text-xs font-bold px-4 py-1.5 rounded-full border border-pitch-600 text-gray-400"
+          onclick="filterStatus('finished',this)">✅ منتهية</button>
+      </div>
+      <div id="matches-list" class="px-4 space-y-3"></div>
+    </div>
+
+    <!-- ── STANDINGS ── -->
+    <div class="page" id="page-standings">
+      <div class="px-4 pt-4">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-base font-bold">🏆 ترتيب الدوري</span>
+          <div class="flex-1 h-px bg-pitch-700"></div>
+        </div>
+        <!-- Table header -->
+        <div
+          class="grid grid-cols-[28px_1fr_32px_32px_32px_32px_36px] gap-1 text-center text-xs text-gray-500 font-bold px-3 mb-2">
+          <div>#</div>
+          <div class="text-right">الفريق</div>
+          <div>ل</div>
+          <div>ف</div>
+          <div>ت</div>
+          <div>خ</div>
+          <div>نق</div>
+        </div>
+        <div id="standings-list" class="space-y-1.5"></div>
+      </div>
+    </div>
+
+    <!-- ── PLAYERS ── -->
+    <div class="page" id="page-players">
+      <div class="flex gap-2 px-4 pt-4 mb-4">
+        <button
+          class="sub-tab active flex-1 text-center py-2 rounded-xl text-xs font-bold bg-lime-500/10 border border-lime-500 text-lime-400"
+          onclick="switchPlayerTab('all',this)">👥 اللاعبون</button>
+        <button
+          class="sub-tab flex-1 text-center py-2 rounded-xl text-xs font-bold bg-pitch-800 border border-pitch-600 text-gray-400"
+          onclick="switchPlayerTab('scorers',this)">⚽ الهدافون</button>
+      </div>
+      <div id="players-list" class="px-4 space-y-2"></div>
+    </div>
+
+    <!-- ── STREAM ── -->
+    <div class="page" id="page-stream">
+      <div class="px-4 pt-4">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-base font-bold">📡 البث المباشر</span>
+          <div class="flex-1 h-px bg-pitch-700"></div>
+        </div>
+        <div id="streams-list" class="space-y-3"></div>
+      </div>
+    </div>
+
+    <!-- ── MATCH DETAIL ── -->
+    <div class="page" id="page-detail">
+      <div class="px-4 pt-4" id="detail-content"></div>
+    </div>
+
+    <!-- ── ADMIN ── -->
+    <div class="page" id="page-admin">
+      <div class="px-4 pt-4 space-y-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-base font-bold">⚙️ الإدارة</span>
+          <div class="flex-1 h-px bg-pitch-700"></div>
+        </div>
+
+        <!-- API Key -->
+        <div class="bg-pitch-800 border border-pitch-600 rounded-2xl p-4">
+          <div class="text-xs font-bold text-lime-400 mb-3">🔑 مفتاح TheSportsDB API</div>
+          <input id="api-key-input" type="text" placeholder="أدخل مفتاح API هنا..."
+            class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-lime-500 transition-colors">
+          <button onclick="saveApiKey()"
+            class="w-full mt-3 bg-lime-500 text-pitch-950 font-bold rounded-xl py-2.5 text-sm">حفظ المفتاح</button>
+        </div>
+
+        <!-- Backend URL -->
+        <div class="bg-pitch-800 border border-pitch-600 rounded-2xl p-4">
+          <div class="text-xs font-bold text-lime-400 mb-3">🌐 رابط Backend</div>
+          <input id="backend-url" type="url" placeholder="https://موقعك.infinityfreeapp.com"
+            class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-lime-500 transition-colors">
+          <button onclick="saveBackend()"
+            class="w-full mt-3 bg-lime-500 text-pitch-950 font-bold rounded-xl py-2.5 text-sm">حفظ الرابط</button>
+        </div>
+
+        <!-- Add Match -->
+        <div class="bg-pitch-800 border border-pitch-600 rounded-2xl p-4">
+          <div class="text-xs font-bold text-lime-400 mb-3">⚽ إضافة مباراة يدوية</div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الفريق المضيف</label>
+              <select id="match-home"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"></select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الفريق الضيف</label>
+              <select id="match-away"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"></select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="text-xs text-gray-400 mb-1 block">التاريخ والوقت</label>
+            <input id="match-date" type="datetime-local"
+              class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500">
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الملعب</label>
+              <input id="match-stadium" type="text"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"
+                placeholder="اسم الملعب">
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الجولة</label>
+              <input id="match-round" type="text"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"
+                placeholder="الجولة 1">
+            </div>
+          </div>
+          <button onclick="addMatch()" class="w-full bg-lime-500 text-pitch-950 font-bold rounded-xl py-2.5 text-sm">➕
+            إضافة</button>
+        </div>
+
+        <!-- Update Score -->
+        <div class="bg-pitch-800 border border-pitch-600 rounded-2xl p-4">
+          <div class="text-xs font-bold text-lime-400 mb-3">📝 تحديث نتيجة</div>
+          <select id="score-match-id"
+            class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm mb-3 outline-none focus:border-lime-500"></select>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">أهداف المضيف</label>
+              <input id="score-home" type="number" min="0" value="0"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500">
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">أهداف الضيف</label>
+              <input id="score-away" type="number" min="0" value="0"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500">
+            </div>
+          </div>
+          <select id="score-status"
+            class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm mb-3 outline-none focus:border-lime-500">
+            <option value="live">🔴 مباشر</option>
+            <option value="finished">✅ منتهية</option>
+            <option value="upcoming">📅 قادمة</option>
+          </select>
+          <button onclick="updateScore()"
+            class="w-full bg-lime-500 text-pitch-950 font-bold rounded-xl py-2.5 text-sm">💾 حفظ</button>
+        </div>
+
+        <!-- Add Player -->
+        <div class="bg-pitch-800 border border-pitch-600 rounded-2xl p-4">
+          <div class="text-xs font-bold text-lime-400 mb-3">👤 تسجيل لاعب</div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الاسم</label>
+              <input id="player-name" type="text"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"
+                placeholder="الاسم الكامل">
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الفريق</label>
+              <select id="player-team"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"></select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">المركز</label>
+              <select id="player-position"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500">
+                <option>حارس</option>
+                <option>مدافع</option>
+                <option>وسط</option>
+                <option>مهاجم</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">رقم القميص</label>
+              <input id="player-jersey" type="number" min="1" max="99"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الجنسية</label>
+              <input id="player-nationality" type="text"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500"
+                placeholder="سعودي">
+            </div>
+            <div>
+              <label class="text-xs text-gray-400 mb-1 block">الأهداف</label>
+              <input id="player-goals" type="number" min="0" value="0"
+                class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm outline-none focus:border-lime-500">
+            </div>
+          </div>
+          <button onclick="addPlayer()" class="w-full bg-lime-500 text-pitch-950 font-bold rounded-xl py-2.5 text-sm">➕
+            تسجيل</button>
+        </div>
+
+        <!-- Add Stream -->
+        <div class="bg-pitch-800 border border-pitch-600 rounded-2xl p-4">
+          <div class="text-xs font-bold text-lime-400 mb-3">📡 إضافة رابط بث</div>
+          <input id="stream-title" type="text"
+            class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm mb-3 outline-none focus:border-lime-500"
+            placeholder="عنوان البث">
+          <input id="stream-url" type="url"
+            class="w-full bg-pitch-900 border border-pitch-600 rounded-xl px-3 py-2 text-sm mb-3 outline-none focus:border-lime-500"
+            placeholder="https://...">
+          <button onclick="addStream()" class="w-full bg-lime-500 text-pitch-950 font-bold rounded-xl py-2.5 text-sm">➕
+            إضافة</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ════════════════════════════════
+     BOTTOM NAV
+════════════════════════════════ -->
+  <nav class="bottom-nav fixed bottom-0 inset-x-0 bg-pitch-900/95 backdrop-blur border-t border-pitch-700 flex z-50">
+    <button data-page="matches"
+      class="nav-item active flex-1 flex flex-col items-center justify-center gap-1 py-2 text-lime-400"
+      onclick="showPage('matches',this)">
+      <span class="text-2xl leading-none">⚽</span><span class="text-[10px] font-bold">المباريات</span>
+    </button>
+    <button data-page="standings"
+      class="nav-item flex-1 flex flex-col items-center justify-center gap-1 py-2 text-gray-500"
+      onclick="showPage('standings',this)">
+      <span class="text-2xl leading-none">🏆</span><span class="text-[10px] font-bold">الترتيب</span>
+    </button>
+    <button data-page="players"
+      class="nav-item flex-1 flex flex-col items-center justify-center gap-1 py-2 text-gray-500"
+      onclick="showPage('players',this)">
+      <span class="text-2xl leading-none">👥</span><span class="text-[10px] font-bold">اللاعبون</span>
+    </button>
+    <button data-page="stream"
+      class="nav-item flex-1 flex flex-col items-center justify-center gap-1 py-2 text-gray-500"
+      onclick="showPage('stream',this)">
+      <span class="text-2xl leading-none">📡</span><span class="text-[10px] font-bold">البث</span>
+    </button>
+    <button data-page="admin" class="nav-item flex-1 flex flex-col items-center justify-center gap-1 py-2 text-gray-500"
+      onclick="showPage('admin',this)">
+      <span class="text-2xl leading-none">⚙️</span><span class="text-[10px] font-bold">الإدارة</span>
+    </button>
+  </nav>
+
+  <!-- ════════════════════════════════
+     TOAST
+════════════════════════════════ -->
+  <div id="toast"
+    class="fixed bottom-24 left-1/2 -translate-x-1/2 bg-pitch-800 border border-lime-500/30 text-lime-400 text-sm font-bold px-5 py-2.5 rounded-full opacity-0 pointer-events-none z-[999] whitespace-nowrap">
+  </div>
+
+  <!-- ════════════════════════════════
+     MATCH DETAIL MODAL
+════════════════════════════════ -->
+  <div id="detail-modal" class="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm hidden" onclick="closeDetail(event)">
+    <div class="absolute bottom-0 inset-x-0 bg-pitch-900 rounded-t-3xl max-h-[90dvh] overflow-y-auto" id="detail-sheet">
+      <div class="w-10 h-1 bg-pitch-600 rounded-full mx-auto mt-3 mb-4"></div>
+      <div id="detail-body" class="px-4 pb-10"></div>
+    </div>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════════
+    //  CONFIG
+    // ════════════════════════════════════════════════════════
+    let API_KEY = localStorage.getItem('sdb_key') || '3';          // مفتاح TheSportsDB (3 = مجاني)
+    let API_BASE = localStorage.getItem('backend') || 'https://KooraVar.wuaze.com/api/matches.php';
+    const SDB = 'https://KooraVar.wuaze.com/api/matches.php';
+
+    // ════════════════════════════════════════════════════════
+    //  STATE
+    // ════════════════════════════════════════════════════════
+    let allMatches = [];
+    let filteredMatches = [];
+    let allTeams = [];
+    let currentLeague = 'all';
+    let currentStatus = 'all';
+    let prevPage = null;
+
+    // ════════════════════════════════════════════════════════
+    //  INIT
+    // ════════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', () => {
+      const k = localStorage.getItem('sdb_key');
+      const b = localStorage.getItem('backend');
+      if (k) { API_KEY = k; document.getElementById('api-key-input').value = k; }
+      if (b) { API_BASE = b; document.getElementById('backend-url').value = b; }
+      loadMatches();
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    });
+
+    // ════════════════════════════════════════════════════════
+    //  NAVIGATION
+    // ════════════════════════════════════════════════════════
+    function showPage(name, el) {
+      prevPage = document.querySelector('.page.active')?.id;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => {
+        n.classList.remove('active', 'text-lime-400');
+        n.classList.add('text-gray-500');
+      });
+      document.getElementById('page-' + name).classList.add('active');
+      if (el) { el.classList.add('active', 'text-lime-400'); el.classList.remove('text-gray-500'); }
+      // Load data per page
+      if (name === 'matches') loadMatches();
+      if (name === 'standings') loadStandings();
+      if (name === 'players') loadPlayers('all');
+      if (name === 'stream') loadStreams();
+      if (name === 'admin') loadAdminData();
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  TOAST
+    // ════════════════════════════════════════════════════════
+    function toast(msg, dur = 2500) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.opacity = '1';
+      setTimeout(() => t.style.opacity = '0', dur);
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  SKELETON HELPERS
+    // ════════════════════════════════════════════════════════
+    function skeletonCards(n = 4) {
+      return Array.from({ length: n }, () => `
+    <div class="bg-pitch-800 rounded-2xl p-4 border border-pitch-700">
+      <div class="skeleton h-3 w-24 mb-4"></div>
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex flex-col items-center gap-2 flex-1">
+          <div class="skeleton w-12 h-12 rounded-full"></div>
+          <div class="skeleton h-3 w-20"></div>
+        </div>
+        <div class="skeleton h-8 w-16 rounded-lg"></div>
+        <div class="flex flex-col items-center gap-2 flex-1">
+          <div class="skeleton w-12 h-12 rounded-full"></div>
+          <div class="skeleton h-3 w-20"></div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+    }
+
+    function skeletonRows(n = 8) {
+      return Array.from({ length: n }, () => `
+    <div class="bg-pitch-800 rounded-xl p-3 border border-pitch-700 flex items-center gap-3">
+      <div class="skeleton w-6 h-6 rounded"></div>
+      <div class="skeleton h-8 w-8 rounded-full flex-shrink-0"></div>
+      <div class="skeleton h-3 flex-1"></div>
+      <div class="skeleton h-3 w-8"></div>
+    </div>
+  `).join('');
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  THESPORTSDB FETCH
+    // ════════════════════════════════════════════════════════
+    async function sdbFetch(endpoint) {
+      try {
+        const r = await fetch(`${SDB}/${API_KEY}/${endpoint}`);
+        return await r.json();
+      } catch { return null; }
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  MATCHES
+    // ════════════════════════════════════════════════════════
+    async function loadMatches() {
+      const el = document.getElementById('matches-list');
+      el.innerHTML = skeletonCards();
+
+      // Try local backend first
+      let local = [];
+      try {
+        const r = await fetch(`${API_BASE}/api/matches.php?action=all`);
+        const d = await r.json();
+        if (d.success) local = d.data;
+      } catch { }
+
+      // Also fetch from TheSportsDB for global leagues
+      let sdb = [];
+      if (currentLeague !== 'all') {
+        const data = await sdbFetch(`eventsnextleague.php?id=${currentLeague}`);
+        if (data?.events) {
+          sdb = data.events.map(e => ({
+            id: 'sdb_' + e.idEvent,
+            home_team: e.strHomeTeam,
+            away_team: e.strAwayTeam,
+            home_logo: e.strHomeTeamBadge || e.strTeamBadgeHome,
+            away_logo: e.strAwayTeamBadge || e.strTeamBadgeAway,
+            home_score: e.intHomeScore,
+            away_score: e.intAwayScore,
+            match_date: e.strTimestamp || (e.dateEvent + 'T' + (e.strTime || '00:00:00')),
+            status: e.strStatus === 'Match Finished' ? 'finished' : (e.strProgress ? 'live' : 'upcoming'),
+            round: e.intRound ? 'الجولة ' + e.intRound : e.strRound || '',
+            stadium: e.strVenue,
+            league: e.strLeague,
+            league_logo: e.strLeagueBadge,
+            _source: 'sdb'
+          }));
+        }
+      }
+
+      allMatches = [...local, ...sdb];
+      applyFilters();
+
+      // Live count badge
+      const liveN = allMatches.filter(m => m.status === 'live').length;
+      const badge = document.getElementById('live-count');
+      if (liveN > 0) {
+        badge.classList.remove('hidden');
+        badge.classList.add('flex');
+        document.getElementById('live-num').textContent = liveN;
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function applyFilters() {
+      let list = allMatches;
+      if (currentStatus !== 'all') list = list.filter(m => m.status === currentStatus);
+      filteredMatches = list;
+      renderMatches(filteredMatches);
+    }
+
+    function selectLeague(id, el) {
+      currentLeague = id;
+      document.querySelectorAll('#league-tabs .nav-tab').forEach(t => {
+        t.classList.remove('active', 'text-lime-400');
+        t.classList.add('text-gray-400');
+      });
+      el.classList.add('active', 'text-lime-400');
+      el.classList.remove('text-gray-400');
+      loadMatches();
+    }
+
+    function filterStatus(status, el) {
+      currentStatus = status;
+      document.querySelectorAll('.pill-btn').forEach(p => {
+        p.classList.remove('active', 'border-lime-500', 'bg-lime-500/10', 'text-lime-400');
+        p.classList.add('border-pitch-600', 'text-gray-400');
+      });
+      el.classList.add('active', 'border-lime-500', 'bg-lime-500/10', 'text-lime-400');
+      el.classList.remove('border-pitch-600', 'text-gray-400');
+      applyFilters();
+    }
+
+    function renderMatches(matches) {
+      const el = document.getElementById('matches-list');
+      if (!matches.length) {
+        el.innerHTML = `<div class="text-center py-16 text-gray-500">
+      <div class="text-5xl mb-3">🏟️</div>
+      <div class="text-sm">لا توجد مباريات</div>
+    </div>`;
+        return;
+      }
+
+      el.innerHTML = matches.map(m => {
+        const isLive = m.status === 'live';
+        const isDone = m.status === 'finished';
+        const statusBadge = isLive
+          ? `<span class="flex items-center gap-1 text-[10px] font-bold text-red-400 bg-red-500/10 border border-red-500/30 px-2 py-0.5 rounded-full"><span class="w-1.5 h-1.5 bg-red-500 rounded-full live-ring inline-block"></span>مباشر</span>`
+          : isDone
+            ? `<span class="text-[10px] font-bold text-gray-500 bg-pitch-700 px-2 py-0.5 rounded-full">انتهت</span>`
+            : `<span class="text-[10px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">قادمة</span>`;
+
+        const homeLogo = m.home_logo
+          ? `<img src="${m.home_logo}" class="w-12 h-12 object-contain" onerror="this.outerHTML='<div class=\\'w-12 h-12 flex items-center justify-center bg-pitch-700 rounded-full text-2xl\\'>🏟️</div>'">`
+          : `<div class="w-12 h-12 flex items-center justify-center bg-pitch-700 rounded-full text-2xl">🏟️</div>`;
+        const awayLogo = m.away_logo
+          ? `<img src="${m.away_logo}" class="w-12 h-12 object-contain" onerror="this.outerHTML='<div class=\\'w-12 h-12 flex items-center justify-center bg-pitch-700 rounded-full text-2xl\\'>🏟️</div>'">`
+          : `<div class="w-12 h-12 flex items-center justify-center bg-pitch-700 rounded-full text-2xl">🏟️</div>`;
+
+        const scoreBlock = (m.home_score != null && m.away_score != null)
+          ? `<div class="score-num text-white">${m.home_score}<span class="text-gray-600 mx-1">-</span>${m.away_score}</div>`
+          : `<div class="text-gray-400 font-bold text-lg">VS</div>`;
+
+        return `
+    <div class="match-card bg-pitch-800 border border-pitch-700 rounded-2xl p-4 cursor-pointer" onclick="openDetail('${m.id || ''}')">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-[10px] text-gray-500 font-bold">${m.round || m.league || 'دوري'}</span>
+        ${statusBadge}
+      </div>
+      <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <div class="flex flex-col items-center gap-2">
+          ${homeLogo}
+          <span class="text-xs font-bold text-center leading-tight">${m.home_team}</span>
+        </div>
+        <div class="flex flex-col items-center gap-1 px-2">
+          ${scoreBlock}
+          ${isLive ? `<span class="text-[10px] text-red-400 font-bold animate-pulse">جارٍ الآن</span>` : ''}
+        </div>
+        <div class="flex flex-col items-center gap-2">
+          ${awayLogo}
+          <span class="text-xs font-bold text-center leading-tight">${m.away_team}</span>
+        </div>
+      </div>
+      <div class="mt-3 pt-3 border-t border-pitch-700 flex items-center justify-between text-[10px] text-gray-500">
+        <span>📅 ${fmtDate(m.match_date)}</span>
+        ${m.stadium ? `<span>📍 ${m.stadium}</span>` : ''}
+      </div>
+    </div>`;
+      }).join('');
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  MATCH DETAIL (Bottom Sheet)
+    // ════════════════════════════════════════════════════════
+    async function openDetail(id) {
+      if (!id || id === 'undefined') return;
+      const modal = document.getElementById('detail-modal');
+      const body = document.getElementById('detail-body');
+      modal.classList.remove('hidden');
+      body.innerHTML = `<div class="text-center py-12 text-gray-400"><div class="text-4xl mb-2">⚽</div><div class="text-sm">جاري التحميل...</div></div>`;
+
+      // if SDB id
+      if (String(id).startsWith('sdb_')) {
+        const sdbId = id.replace('sdb_', '');
+        const data = await sdbFetch(`lookupevent.php?id=${sdbId}`);
+        const ev = data?.events?.[0];
+        if (ev) renderDetailSDB(ev, body);
+        else body.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm">لا توجد تفاصيل</div>`;
+        return;
+      }
+
+      // local match
+      const match = allMatches.find(m => String(m.id) === String(id));
+      if (match) renderDetailLocal(match, body);
+      else body.innerHTML = `<div class="text-center py-12 text-gray-400 text-sm">لا توجد تفاصيل</div>`;
+    }
+
+    function renderDetailLocal(m, el) {
+      el.innerHTML = `
+    <div class="text-center mb-6">
+      <div class="text-xs text-gray-500 mb-2">${m.round || 'مباراة'}</div>
+      <div class="grid grid-cols-3 items-center gap-4">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-pitch-800 rounded-full flex items-center justify-center text-3xl mx-auto mb-2">🏟️</div>
+          <div class="text-sm font-bold">${m.home_team}</div>
+        </div>
+        <div class="text-center">
+          ${m.home_score != null
+          ? `<div class="text-3xl font-black">${m.home_score} - ${m.away_score}</div>`
+          : `<div class="text-xl font-bold text-gray-400">VS</div>`}
+          <div class="text-[10px] text-gray-500 mt-1">${fmtDate(m.match_date)}</div>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-pitch-800 rounded-full flex items-center justify-center text-3xl mx-auto mb-2">🏟️</div>
+          <div class="text-sm font-bold">${m.away_team}</div>
+        </div>
+      </div>
+    </div>
+    ${m.stadium ? `<div class="bg-pitch-800 rounded-xl p-3 text-center text-sm text-gray-300 mb-4">📍 ${m.stadium}</div>` : ''}
+    <div class="text-center text-sm text-gray-500">أضف المزيد من التفاصيل عبر لوحة الإدارة</div>
+  `;
+    }
+
+    function renderDetailSDB(ev, el) {
+      const score = ev.intHomeScore != null
+        ? `<div class="text-3xl font-black">${ev.intHomeScore} - ${ev.intAwayScore}</div>`
+        : `<div class="text-xl font-bold text-gray-400">VS</div>`;
+
+      const summary = ev.strDescriptionEN || ev.strResult || '';
+
+      el.innerHTML = `
+    <div class="text-center mb-6">
+      <div class="text-xs text-gray-500 mb-2">${ev.strLeague || ''} · ${ev.strRound ? 'الجولة ' + ev.strRound : ''}</div>
+      <div class="grid grid-cols-3 items-center gap-4 mb-4">
+        <div class="text-center">
+          ${ev.strHomeTeamBadge ? `<img src="${ev.strHomeTeamBadge}" class="w-16 h-16 object-contain mx-auto mb-2">` : `<div class="w-16 h-16 bg-pitch-800 rounded-full flex items-center justify-center text-3xl mx-auto mb-2">🏟️</div>`}
+          <div class="text-sm font-bold">${ev.strHomeTeam}</div>
+        </div>
+        <div class="text-center">${score}<div class="text-[10px] text-gray-500 mt-1">${ev.dateEvent || ''}</div></div>
+        <div class="text-center">
+          ${ev.strAwayTeamBadge ? `<img src="${ev.strAwayTeamBadge}" class="w-16 h-16 object-contain mx-auto mb-2">` : `<div class="w-16 h-16 bg-pitch-800 rounded-full flex items-center justify-center text-3xl mx-auto mb-2">🏟️</div>`}
+          <div class="text-sm font-bold">${ev.strAwayTeam}</div>
+        </div>
+      </div>
+    </div>
+
+    ${ev.strVenue ? `<div class="bg-pitch-800 rounded-xl p-3 text-center text-sm text-gray-300 mb-3">📍 ${ev.strVenue}</div>` : ''}
+    ${summary ? `<div class="bg-pitch-800 rounded-xl p-4 mb-3"><div class="text-xs text-lime-400 font-bold mb-2">📋 ملخص</div><div class="text-sm text-gray-300 leading-relaxed">${summary}</div></div>` : ''}
+
+    ${ev.strThumb ? `<img src="${ev.strThumb}" class="w-full rounded-xl object-cover mb-3" style="max-height:160px">` : ''}
+
+    <a href="https://www.thesportsdb.com/event/${ev.idEvent}" target="_blank"
+       class="block w-full text-center bg-lime-500 text-pitch-950 font-bold rounded-xl py-3 text-sm">
+      📺 مشاهدة التفاصيل الكاملة
+    </a>
+  `;
+    }
+
+    function closeDetail(e) {
+      if (e.target === document.getElementById('detail-modal')) {
+        document.getElementById('detail-modal').classList.add('hidden');
+      }
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  STANDINGS
+    // ════════════════════════════════════════════════════════
+    async function loadStandings() {
+      const el = document.getElementById('standings-list');
+      el.innerHTML = skeletonRows();
+
+      // Try SDB first if league selected
+      if (currentLeague !== 'all') {
+        const data = await sdbFetch(`lookuptable.php?l=${currentLeague}&s=2024-2025`);
+        if (data?.table?.length) {
+          renderStandings(data.table.map(r => ({
+            team_name: r.strTeam, team_logo: r.strTeamBadge,
+            played: r.intPlayed, won: r.intWin, drawn: r.intDraw, lost: r.intLoss, points: r.intPoints
+          }))); return;
+        }
+      }
+
+      // Local backend fallback
+      try {
+        const r = await fetch(`${API_BASE}/api/general.php?action=standings`);
+        const d = await r.json();
+        if (d.success) { renderStandings(d.data); return; }
+      } catch { }
+
+      renderStandings(demoStandings());
+    }
+
+    function renderStandings(rows) {
+      const el = document.getElementById('standings-list');
+      el.innerHTML = rows.map((r, i) => `
+    <div class="grid grid-cols-[28px_1fr_32px_32px_32px_32px_36px] gap-1 items-center px-3 py-2.5 bg-pitch-800 rounded-xl border border-pitch-700 text-center text-xs ${i < 1 ? 'top1' : i < 2 ? 'top2' : i < 3 ? 'top3' : ''}">
+      <div class="font-black text-sm ${i < 3 ? 'text-yellow-400' : 'text-gray-500'}">${i + 1}</div>
+      <div class="flex items-center gap-2 text-right">
+        ${r.team_logo ? `<img src="${r.team_logo}" class="w-6 h-6 object-contain flex-shrink-0">` : `<div class="w-6 h-6 bg-pitch-700 rounded-full flex-shrink-0"></div>`}
+        <span class="font-bold text-xs truncate">${r.team_name}</span>
+      </div>
+      <div class="text-gray-400">${r.played || 0}</div>
+      <div class="text-gray-400">${r.won || 0}</div>
+      <div class="text-gray-400">${r.drawn || 0}</div>
+      <div class="text-gray-400">${r.lost || 0}</div>
+      <div class="font-black text-lime-400">${r.points || 0}</div>
+    </div>
+  `).join('');
+    }
+
+    function demoStandings() {
+      return [
+        { team_name: 'الهلال', played: 10, won: 7, drawn: 2, lost: 1, points: 23 },
+        { team_name: 'النصر', played: 10, won: 6, drawn: 1, lost: 3, points: 19 },
+        { team_name: 'الاتحاد', played: 10, won: 5, drawn: 3, lost: 2, points: 18 },
+        { team_name: 'الأهلي', played: 10, won: 4, drawn: 2, lost: 4, points: 14 },
+      ];
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  PLAYERS
+    // ════════════════════════════════════════════════════════
+    function switchPlayerTab(tab, el) {
+      document.querySelectorAll('.sub-tab').forEach(t => {
+        t.classList.remove('active', 'bg-lime-500/10', 'border-lime-500', 'text-lime-400');
+        t.classList.add('bg-pitch-800', 'border-pitch-600', 'text-gray-400');
+      });
+      el.classList.add('active', 'bg-lime-500/10', 'border-lime-500', 'text-lime-400');
+      el.classList.remove('bg-pitch-800', 'border-pitch-600', 'text-gray-400');
+      loadPlayers(tab);
+    }
+
+    async function loadPlayers(tab) {
+      const el = document.getElementById('players-list');
+      el.innerHTML = skeletonRows(6);
+
+      // Try SDB squad if league selected (top leagues)
+      if (tab === 'all' && currentLeague !== 'all') {
+        const data = await sdbFetch(`search_all_seasons.php?id=${currentLeague}`);
+        // SDB free tier has limited squad data, so we fall to local
+      }
+
+      try {
+        const action = tab === 'scorers' ? 'scorers' : 'all';
+        const r = await fetch(`${API_BASE}/api/players.php?action=${action}`);
+        const d = await r.json();
+        if (d.success) {
+          tab === 'scorers' ? renderScorers(d.data) : renderPlayers(d.data);
+          return;
+        }
+      } catch { }
+
+      const demo = demoPlayers();
+      tab === 'scorers' ? renderScorers(demo) : renderPlayers(demo);
+    }
+
+    function renderPlayers(players) {
+      if (!players.length) { document.getElementById('players-list').innerHTML = emptyState('👥', 'لا يوجد لاعبون'); return; }
+      document.getElementById('players-list').innerHTML = `
+    <div class="grid grid-cols-2 gap-3">
+      ${players.map(p => `
+        <div class="bg-pitch-800 border border-pitch-700 rounded-2xl p-4 text-center">
+          ${p.photo
+          ? `<img src="${p.photo}" class="w-14 h-14 rounded-full object-cover mx-auto mb-2 border-2 border-pitch-600">`
+          : `<div class="w-14 h-14 rounded-full bg-pitch-700 flex items-center justify-center text-3xl mx-auto mb-2">⚽</div>`}
+          <div class="text-xs font-bold mb-0.5">${p.name}</div>
+          <div class="text-[10px] text-gray-500 mb-2">${p.team_name || '-'}</div>
+          <span class="text-[10px] font-bold bg-pitch-700 text-gray-300 px-2 py-0.5 rounded-full">${p.position || '-'}</span>
+          <div class="flex justify-center gap-3 mt-3">
+            <div class="text-center"><div class="text-base font-black text-lime-400">${p.goals || 0}</div><div class="text-[9px] text-gray-500">هدف</div></div>
+            <div class="text-center"><div class="text-base font-black text-blue-400">${p.assists || 0}</div><div class="text-[9px] text-gray-500">تمريرة</div></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>`;
+    }
+
+    function renderScorers(players) {
+      if (!players.length) { document.getElementById('players-list').innerHTML = emptyState('⚽', 'لا توجد إحصائيات'); return; }
+      const medals = ['🥇', '🥈', '🥉'];
+      document.getElementById('players-list').innerHTML = players.map((p, i) => `
+    <div class="flex items-center gap-3 bg-pitch-800 border border-pitch-700 rounded-xl px-4 py-3">
+      <div class="text-xl w-7 text-center">${medals[i] || (i + 1)}</div>
+      ${p.photo ? `<img src="${p.photo}" class="w-10 h-10 rounded-full object-cover border border-pitch-600">` : `<div class="w-10 h-10 rounded-full bg-pitch-700 flex items-center justify-center text-xl flex-shrink-0">⚽</div>`}
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-bold truncate">${p.name}</div>
+        <div class="text-[10px] text-gray-500">${p.team_name || '-'} · ${p.nationality || ''}</div>
+      </div>
+      <div class="text-right">
+        <div class="text-xl font-black text-lime-400">${p.goals || 0}</div>
+        <div class="text-[9px] text-gray-500">هدف</div>
+      </div>
+    </div>
+  `).join('');
+    }
+
+    function demoPlayers() {
+      return [
+        { name: 'محمد صلاح', team_name: 'الهلال', position: 'مهاجم', goals: 15, assists: 8, nationality: 'مصري' },
+        { name: 'كريم بنزيمة', team_name: 'النصر', position: 'مهاجم', goals: 12, assists: 5, nationality: 'فرنسي' },
+        { name: 'نيمار', team_name: 'الهلال', position: 'مهاجم', goals: 8, assists: 10, nationality: 'برازيلي' },
+        { name: 'روبرتو فيرمينو', team_name: 'الاتحاد', position: 'مهاجم', goals: 7, assists: 6, nationality: 'برازيلي' },
+      ];
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  STREAMS
+    // ════════════════════════════════════════════════════════
+    async function loadStreams() {
+      const el = document.getElementById('streams-list');
+      el.innerHTML = skeletonCards(2);
+      try {
+        const r = await fetch(`${API_BASE}/api/general.php?action=streams`);
+        const d = await r.json();
+        if (d.success) { renderStreams(d.data); return; }
+      } catch { }
+      renderStreams([]);
+    }
+
+    function renderStreams(streams) {
+      const el = document.getElementById('streams-list');
+      if (!streams.length) { el.innerHTML = emptyState('📡', 'لا يوجد بث متاح حالياً'); return; }
+      el.innerHTML = streams.map(s => `
+    <div class="bg-pitch-800 border border-pitch-700 rounded-2xl overflow-hidden">
+      <div class="h-36 bg-gradient-to-br from-pitch-700 to-pitch-900 flex flex-col items-center justify-center gap-3 relative">
+        <button onclick="window.open('${s.stream_url}','_blank')"
+          class="w-14 h-14 bg-lime-500 rounded-full flex items-center justify-center text-pitch-950 text-2xl font-black shadow-lg active:scale-90 transition-transform">▶</button>
+        <div class="absolute bottom-0 inset-x-0 px-4 py-2 bg-gradient-to-t from-black/70 to-transparent text-sm font-bold">${s.title}</div>
+      </div>
+      <div class="flex items-center justify-between px-4 py-3">
+        <div class="text-xs text-gray-400">${s.home_team && s.away_team ? s.home_team + ' VS ' + s.away_team : 'بث مباشر'}</div>
+        <button onclick="window.open('${s.stream_url}','_blank')" class="bg-lime-500 text-pitch-950 text-xs font-bold px-4 py-2 rounded-lg">مشاهدة</button>
+      </div>
+    </div>
+  `).join('');
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  ADMIN HELPERS
+    // ════════════════════════════════════════════════════════
+    function saveApiKey() {
+      const k = document.getElementById('api-key-input').value.trim();
+      if (!k) { toast('⚠️ أدخل المفتاح'); return; }
+      API_KEY = k; localStorage.setItem('sdb_key', k);
+      toast('✅ تم حفظ مفتاح API');
+    }
+    function saveBackend() {
+      const b = document.getElementById('backend-url').value.trim();
+      if (!b) { toast('⚠️ أدخل الرابط'); return; }
+      API_BASE = b; localStorage.setItem('backend', b);
+      toast('✅ تم حفظ رابط Backend');
+    }
+
+    async function loadAdminData() {
+      let teams = [];
+      try {
+        const r = await fetch(`${API_BASE}/api/general.php?action=teams`);
+        const d = await r.json();
+        if (d.success) teams = d.data;
+      } catch { }
+      if (!teams.length) teams = [{ id: 1, name: 'الهلال' }, { id: 2, name: 'النصر' }, { id: 3, name: 'الاتحاد' }, { id: 4, name: 'الأهلي' }];
+      allTeams = teams;
+      const opts = teams.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+      ['match-home', 'match-away', 'player-team'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = opts;
+      });
+      // Load match select
+      const sel = document.getElementById('score-match-id');
+      if (sel && allMatches.length) {
+        sel.innerHTML = allMatches.filter(m => !String(m.id).startsWith('sdb_')).map(m =>
+          `<option value="${m.id}">${m.home_team} vs ${m.away_team}</option>`
+        ).join('');
+      }
+    }
+
+    async function addMatch() {
+      const body = {
+        season_id: 1,
+        home_team_id: document.getElementById('match-home').value,
+        away_team_id: document.getElementById('match-away').value,
+        match_date: document.getElementById('match-date').value,
+        stadium: document.getElementById('match-stadium').value,
+        round: document.getElementById('match-round').value,
+        status: 'upcoming'
+      };
+      try {
+        const r = await fetch(`${API_BASE}/api/matches.php`, { method: 'POST', body: JSON.stringify(body) });
+        const d = await r.json();
+        toast(d.success ? '✅ تمت إضافة المباراة' : '❌ فشل الإضافة');
+      } catch { toast('⚠️ تحقق من اتصالك'); }
+    }
+
+    async function updateScore() {
+      const body = {
+        id: document.getElementById('score-match-id').value,
+        home_score: document.getElementById('score-home').value,
+        away_score: document.getElementById('score-away').value,
+        status: document.getElementById('score-status').value,
+      };
+      try {
+        const r = await fetch(`${API_BASE}/api/matches.php`, { method: 'PUT', body: JSON.stringify(body) });
+        const d = await r.json();
+        toast(d.success ? '✅ تم تحديث النتيجة' : '❌ فشل التحديث');
+      } catch { toast('⚠️ تحقق من اتصالك'); }
+    }
+
+    async function addPlayer() {
+      const name = document.getElementById('player-name').value.trim();
+      if (!name) { toast('⚠️ أدخل اسم اللاعب'); return; }
+      const body = {
+        name, team_id: document.getElementById('player-team').value,
+        position: document.getElementById('player-position').value,
+        jersey_number: document.getElementById('player-jersey').value,
+        nationality: document.getElementById('player-nationality').value,
+        goals: document.getElementById('player-goals').value,
+        assists: 0, birth_date: null
+      };
+      try {
+        const r = await fetch(`${API_BASE}/api/players.php`, { method: 'POST', body: JSON.stringify(body) });
+        const d = await r.json();
+        toast(d.success ? '✅ تم تسجيل اللاعب' : '❌ فشل التسجيل');
+        if (d.success) document.getElementById('player-name').value = '';
+      } catch { toast('⚠️ تحقق من اتصالك'); }
+    }
+
+    async function addStream() {
+      const title = document.getElementById('stream-title').value.trim();
+      const url = document.getElementById('stream-url').value.trim();
+      if (!title || !url) { toast('⚠️ أدخل العنوان والرابط'); return; }
+      try {
+        const r = await fetch(`${API_BASE}/api/general.php?action=add_stream`,
+          { method: 'POST', body: JSON.stringify({ match_id: null, title, stream_url: url }) });
+        const d = await r.json();
+        toast(d.success ? '✅ تمت إضافة البث' : '❌ فشل الإضافة');
+        if (d.success) { document.getElementById('stream-title').value = ''; document.getElementById('stream-url').value = ''; }
+      } catch { toast('⚠️ تحقق من اتصالك'); }
+    }
+
+    // ════════════════════════════════════════════════════════
+    //  UTILS
+    // ════════════════════════════════════════════════════════
+    function fmtDate(d) {
+      try { return new Date(d).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+      catch { return d || ''; }
+    }
+    function emptyState(icon, msg) {
+      return `<div class="text-center py-16 text-gray-500"><div class="text-5xl mb-3">${icon}</div><div class="text-sm">${msg}</div></div>`;
+    }
+  </script>
+</body>
+
+</html>
