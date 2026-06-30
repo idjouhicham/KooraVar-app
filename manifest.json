@@ -1,0 +1,26 @@
+{
+  "name": "كووورة - نتائج المباريات العالمية",
+  "short_name": "كووورة",
+  "description": "جميع مباريات العالم - نتائج، ترتيب، تشكيلات، أخبار، بث مباشر",
+  "start_url": "/index.html?pwa=1",
+  "display": "standalone",
+  "background_color": "#070514",
+  "theme_color": "#070514",
+  "orientation": "portrait-primary",
+  "lang": "ar",
+  "dir": "rtl",
+  "scope": "/",
+  "categories": ["sports","entertainment"],
+  "icons": [
+    {"src":"icon-72.png","sizes":"72x72","type":"image/png"},
+    {"src":"icon-96.png","sizes":"96x96","type":"image/png"},
+    {"src":"icon-128.png","sizes":"128x128","type":"image/png"},
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ],
+  "shortcuts": [
+    {"name":"مباريات اليوم","url":"/index.html?tab=matches","icons":[{"src":"icon-96.png","sizes":"96x96"}]},
+    {"name":"مباشر الآن","url":"/index.html?tab=matches&status=live","icons":[{"src":"icon-96.png","sizes":"96x96"}]},
+    {"name":"البث المباشر","url":"/index.html?tab=stream","icons":[{"src":"icon-96.png","sizes":"96x96"}]}
+  ]
+}
